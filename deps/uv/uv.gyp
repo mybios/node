@@ -110,15 +110,18 @@
             'src/win/winsock.c',
             'src/win/winsock.h',
           ],
-          'link_settings': {
-            'libraries': [
-              '-ladvapi32',
-              '-liphlpapi',
-              '-lpsapi',
-              '-lshell32',
-              '-lws2_32'
+          'conditions' : [
+          [ 'node_winonecore=="false"', {
+            'link_settings': {
+              'libraries': [
+                '-ladvapi32',
+                '-liphlpapi',
+                '-lpsapi',
+                '-lshell32',
+                '-lws2_32'
             ],
           },
+          }]],
         }, { # Not Windows i.e. POSIX
           'cflags': [
             '-g',
@@ -272,6 +275,9 @@
         }],
         ['uv_library=="shared_library"', {
           'defines': [ 'BUILDING_UV_SHARED=1' ]
+        }],
+        ['node_winonecore=="true"', {
+          'defines': [ 'WINONECORE=1' ],
         }],
       ]
     },

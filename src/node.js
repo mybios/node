@@ -62,6 +62,12 @@
 
     startup.resolveArgv0();
 
+    // load the wincore patch to fix some known issues
+    // when building for Windows OneCore
+    if (NativeModule.exists('_winonecore_patch')) {
+        NativeModule.require('_winonecore_patch');
+    }
+
     // There are various modes that Node can run in. The most common two
     // are running from a script and running the REPL - but there are a few
     // others like the debugger or running --eval arguments. Here we decide
@@ -209,10 +215,23 @@
     };
   };
 
-  startup.globalConsole = function() {
-    global.__defineGetter__('console', function() {
-      return NativeModule.require('console');
-    });
+  startup.globalConsole = function () {
+      var emptyConsole = {
+          log: function () { },
+          debug: function () { },
+          info: function () { },
+          warn: function () { },
+          warning: function () { },
+          error: function () { },
+      };
+
+      global.__defineGetter__('console', function () {
+          if (process.noconsole) {
+              return emptyConsole;
+          } else {
+              return NativeModule.require('console');
+          }
+      });
   };
 
 
@@ -495,7 +514,30 @@
   }
 
   startup.processStdio = function() {
-    var stdin, stdout, stderr;
+      var stdin, stdout, stderr;
+
+    if (process.noconsole) {
+        stdin = {
+            id: '__mock_stdin',
+            write: function () { },
+            read: function () { },
+            pipe: function () { }
+        }
+
+        stdout = {
+            id: '__mock_stdout',
+            write: function () { },
+            read: function () { },
+            pipe: function () { }
+        }
+
+        stderr = {
+            id: '__mock_stderr',
+            write: function () { },
+            read: function () { },
+            pipe: function () { }
+        }
+    }
 
     process.__defineGetter__('stdout', function() {
       if (stdout) return stdout;

@@ -322,6 +322,16 @@ parser.add_option("--use-chakra",
     action="store_true",
     dest="use_chakra",
     help="Use the Chakra JavaScript engine instead of V8")
+	
+parser.add_option("--winonecore",
+    action="store_true",
+    dest="winonecore",
+    help="Build Node.js for Windows OneCore platforms")
+	
+parser.add_option("--builddll",
+    action="store_true",
+    dest="builddll",
+    help="Build Node.js as a DLL for consumption within a Universal application")
 
 (options, args) = parser.parse_args()
 
@@ -986,6 +996,12 @@ def configure_intl(o):
 
 def configure_chakra(o):
   o['variables']['node_use_chakra'] = b(options.use_chakra)
+  
+def configure_winonecore(o):
+  o['variables']['node_winonecore'] = b(options.winonecore)
+  
+def configure_builddll(o):
+  o['variables']['node_builddll'] = b(options.builddll)
 
 
 # determine the "flavor" (operating system) we're building for,
@@ -1014,6 +1030,8 @@ configure_winsdk(output)
 configure_intl(output)
 configure_fullystatic(output)
 configure_chakra(output)
+configure_winonecore(output)
+configure_builddll(output)
 
 # variables should be a root level element,
 # move everything else to target_defaults

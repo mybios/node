@@ -145,6 +145,11 @@ static const char* icu_data_dir = NULL;
 // used by C++ modules as well
 bool no_deprecation = false;
 
+// Turn off the console if node.dll is built for consumption within a Universal Windows Platform app
+#ifdef NODE_DLL
+bool no_console = false;
+#endif
+
 // process-relative uptime base, initialized at start-up
 static double prog_start_time;
 static bool debugger_running;
@@ -2713,6 +2718,12 @@ void SetupProcessObject(Environment* env,
     READONLY_PROPERTY(process, "traceDeprecation", True(env->isolate()));
   }
 
+#ifdef NODE_DLL
+  if (no_console) {
+      READONLY_PROPERTY(process, "noconsole", True(env->isolate()));
+  }
+#endif
+
   size_t exec_path_len = 2 * PATH_MAX;
   char* exec_path = new char[exec_path_len];
   Local<String> exec_path_value;
@@ -2944,6 +2955,9 @@ static void PrintHelp() {
 #endif
          "  --enable-ssl2        enable ssl2\n"
          "  --enable-ssl3        enable ssl3\n"
+#ifdef NODE_DLL
+         "  --no-console         turn off console when node.dll is being used within a Universal Windows Platform application\n"
+#endif
          "\n"
          "Environment variables:\n"
 #ifdef _WIN32
@@ -3011,10 +3025,12 @@ static void ParseArgs(int* argc,
     } else if (strcmp(arg, "--version") == 0 || strcmp(arg, "-v") == 0) {
       printf("%s\n", NODE_VERSION);
       exit(0);
+#ifndef HAVE_OPENSSL
     } else if (strcmp(arg, "--enable-ssl2") == 0) {
       SSL2_ENABLE = true;
     } else if (strcmp(arg, "--enable-ssl3") == 0) {
       SSL3_ENABLE = true;
+#endif
     } else if (strcmp(arg, "--help") == 0 || strcmp(arg, "-h") == 0) {
       PrintHelp();
       exit(0);
@@ -3058,6 +3074,11 @@ static void ParseArgs(int* argc,
 #if defined(NODE_HAVE_I18N_SUPPORT)
     } else if (strncmp(arg, "--icu-data-dir=", 15) == 0) {
       icu_data_dir = arg + 15;
+#endif
+#ifdef NODE_DLL
+    }
+    else if (strcmp(arg, "--no-console") == 0) {
+        no_console = true;
 #endif
     } else {
       // V8 option.  Pass through as-is.

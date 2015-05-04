@@ -146,6 +146,7 @@ static int uv__create_stdio_pipe_pair(uv_loop_t* loop,
 #ifndef NDEBUG
   /* Validate that the pipe was opened in the right mode. */
   {
+#ifndef WINONECORE
     DWORD mode;
     BOOL r = GetNamedPipeHandleState(child_pipe,
                                      &mode,
@@ -156,6 +157,7 @@ static int uv__create_stdio_pipe_pair(uv_loop_t* loop,
                                      0);
     assert(r == TRUE);
     assert(mode == (PIPE_READMODE_BYTE | PIPE_WAIT));
+#endif
   }
 #endif
 

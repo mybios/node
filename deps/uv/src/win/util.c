@@ -488,6 +488,10 @@ uint64_t uv__hrtime(double scale) {
   return (uint64_t) ((double) counter.QuadPart * hrtime_interval_ * scale);
 }
 
+#ifdef WINONECORE
+BOOL WINAPI K32GetProcessMemoryInfo(HANDLE Process, PPROCESS_MEMORY_COUNTERS ppsmemCounters, DWORD cb);
+#define GetProcessMemoryInfo K32GetProcessMemoryInfo
+#endif
 
 int uv_resident_set_memory(size_t* rss) {
   HANDLE current_process;

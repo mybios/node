@@ -34,15 +34,22 @@
         'USE_EDGEMODE_JSRT=1',
         '_WIN32_WINNT=0x0601',
       ],
-      'libraries': [
-        '-lchakrart.lib',
-        '-lole32.lib',
-        '-lversion.lib',
-      ],
       'conditions': [
         [ 'target_arch=="arm"', {
           'defines': [ '__arm__=1' ]
         }],
+        [ 'node_winonecore=="true"', {
+          'libraries': [
+            '-lchakrart.lib',
+          ],
+        }],
+        [ 'node_winonecore=="false"', {
+          'libraries': [
+            '-lchakrart.lib',
+            '-lole32.lib',
+            '-lversion.lib',
+          ],
+        }]
       ],
       'msvs_disabled_warnings': [4091],
     },

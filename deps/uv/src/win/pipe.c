@@ -250,6 +250,10 @@ static int uv_set_pipe_handle(uv_loop_t* loop,
        * But if the handle already has the desired wait and blocking modes
        * we can continue.
        */
+#ifdef WINONECORE
+		SetLastError(ERROR_ACCESS_DENIED);
+		return -1;
+#else
       if (!GetNamedPipeHandleState(pipeHandle, &current_mode, NULL, NULL,
                                    NULL, NULL, 0)) {
         return -1;
@@ -257,6 +261,7 @@ static int uv_set_pipe_handle(uv_loop_t* loop,
         SetLastError(ERROR_ACCESS_DENIED);
         return -1;
       }
+#endif
     } else {
       /* If this returns ERROR_INVALID_PARAMETER we probably opened
        * something that is not a pipe. */
