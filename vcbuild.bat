@@ -272,7 +272,7 @@ goto exit
 
 :arm-requires-openssl-no-asm
 echo openssl asm is currently not supported on arm
-echo use 'openssl-no-asm' as additional argument 
+echo use 'openssl-no-asm' as additional argument
 goto exit
 
 :help
