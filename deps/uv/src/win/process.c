@@ -868,8 +868,10 @@ void uv_process_proc_exit(uv_loop_t* loop, uv_process_t* handle) {
 
   /* Unregister from process notification. */
   if (handle->wait_handle != INVALID_HANDLE_VALUE) {
+#ifndef WINONECORE
     UnregisterWait(handle->wait_handle);
     handle->wait_handle = INVALID_HANDLE_VALUE;
+#endif
   }
 
   /* Set the handle to inactive: no callbacks will be made after the exit */
@@ -896,11 +898,13 @@ void uv_process_close(uv_loop_t* loop, uv_process_t* handle) {
   if (handle->wait_handle != INVALID_HANDLE_VALUE) {
     /* This blocks until either the wait was cancelled, or the callback has */
     /* completed. */
+#ifndef WINONECORE
     BOOL r = UnregisterWaitEx(handle->wait_handle, INVALID_HANDLE_VALUE);
     if (!r) {
       /* This should never happen, and if it happens, we can't recover... */
       uv_fatal_error(GetLastError(), "UnregisterWaitEx");
     }
+#endif
 
     handle->wait_handle = INVALID_HANDLE_VALUE;
   }
@@ -1129,12 +1133,16 @@ int uv_spawn(uv_loop_t* loop,
   }
 
   /* Setup notifications for when the child process exits. */
+#ifdef WINONECORE
+  uv_fatal_error(ERROR_NOT_SUPPORTED, "RegisterWaitForSingleObject"); // Fail
+#else
   result = RegisterWaitForSingleObject(&process->wait_handle,
       process->process_handle, exit_wait_callback, (void*)process, INFINITE,
       WT_EXECUTEINWAITTHREAD | WT_EXECUTEONLYONCE);
   if (!result) {
     uv_fatal_error(GetLastError(), "RegisterWaitForSingleObject");
   }
+#endif
 
   CloseHandle(info.hThread);
 

@@ -189,7 +189,11 @@ int uv_stdio_pipe_server(uv_loop_t* loop, uv_pipe_t* handle, DWORD access,
   for (;;) {
     uv_unique_pipe_name(ptr, name, nameSize);
 
+#ifdef WINONECORE
+    pipeHandle = CreateNamedPipeW(name,
+#else
     pipeHandle = CreateNamedPipeA(name,
+#endif
       access | FILE_FLAG_OVERLAPPED | FILE_FLAG_FIRST_PIPE_INSTANCE,
       PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT, 1, 65536, 65536, 0,
       NULL);
@@ -386,9 +390,14 @@ void uv_pipe_endgame(uv_loop_t* loop, uv_pipe_t* handle) {
     }
 
     /* Run FlushFileBuffers in the thread pool. */
-    result = QueueUserWorkItem(pipe_shutdown_thread_proc,
-                               req,
-                               WT_EXECUTELONGFUNCTION);
+#ifdef WINONECORE
+	result = 0;
+    SetLastError(ERROR_NOT_SUPPORTED);
+#else
+	result = QueueUserWorkItem(pipe_shutdown_thread_proc,
+		req,
+		WT_EXECUTELONGFUNCTION);
+#endif
     if (result) {
       return;
 
@@ -437,8 +446,10 @@ void uv_pipe_endgame(uv_loop_t* loop, uv_pipe_t* handle) {
 
       if (handle->flags & UV_HANDLE_EMULATE_IOCP) {
         if (handle->read_req.wait_handle != INVALID_HANDLE_VALUE) {
+#ifndef WINONECORE
           UnregisterWait(handle->read_req.wait_handle);
           handle->read_req.wait_handle = INVALID_HANDLE_VALUE;
+#endif
         }
         if (handle->read_req.event_handle) {
           CloseHandle(handle->read_req.event_handle);
@@ -623,11 +634,17 @@ void uv_pipe_connect(uv_connect_t* req, uv_pipe_t* handle,
   if (pipeHandle == INVALID_HANDLE_VALUE) {
     if (GetLastError() == ERROR_PIPE_BUSY) {
       /* Wait for the server to make a pipe instance available. */
+#ifdef WINONECORE
+      { 
+		err = ERROR_NOT_SUPPORTED;
+        goto error;
+#else
       if (!QueueUserWorkItem(&pipe_connect_thread_proc,
                              req,
                              WT_EXECUTELONGFUNCTION)) {
         err = GetLastError();
         goto error;
+#endif
       }
 
       REGISTER_HANDLE_REQ(loop, handle, req);
@@ -1061,12 +1078,18 @@ static void uv_pipe_queue_read(uv_loop_t* loop, uv_pipe_t* handle) {
   req = &handle->read_req;
 
   if (handle->flags & UV_HANDLE_NON_OVERLAPPED_PIPE) {
+#ifdef WINONECORE
+  {
+	  SET_REQ_ERROR(req, ERROR_NOT_SUPPORTED);
+	  goto error;
+#else
     if (!QueueUserWorkItem(&uv_pipe_zero_readfile_thread_proc,
                            req,
                            WT_EXECUTELONGFUNCTION)) {
       /* Make this req pending reporting an error. */
       SET_REQ_ERROR(req, GetLastError());
       goto error;
+#endif
     }
   } else {
     memset(&req->overlapped, 0, sizeof(req->overlapped));
@@ -1095,9 +1118,15 @@ static void uv_pipe_queue_read(uv_loop_t* loop, uv_pipe_t* handle) {
         }
       }
       if (req->wait_handle == INVALID_HANDLE_VALUE) {
+#ifdef WINONECORE
+	    {
+         SET_REQ_ERROR(req, ERROR_NOT_SUPPORTED);
+         goto error;
+#else
         if (!RegisterWaitForSingleObject(&req->wait_handle,
             req->overlapped.hEvent, post_completion_read_wait, (void*) req,
             INFINITE, WT_EXECUTEINWAITTHREAD)) {
+#endif
           SET_REQ_ERROR(req, GetLastError());
           goto error;
         }
@@ -1176,10 +1205,15 @@ static uv_write_t* uv_remove_non_overlapped_write_req(uv_pipe_t* handle) {
 static void uv_queue_non_overlapped_write(uv_pipe_t* handle) {
   uv_write_t* req = uv_remove_non_overlapped_write_req(handle);
   if (req) {
+#ifdef WINONECORE
+   {
+      uv_fatal_error(ERROR_NOT_SUPPORTED, "QueueUserWorkItem");
+#else
     if (!QueueUserWorkItem(&uv_pipe_writefile_thread_proc,
                            req,
                            WT_EXECUTELONGFUNCTION)) {
       uv_fatal_error(GetLastError(), "QueueUserWorkItem");
+#endif
     }
   }
 }
@@ -1418,10 +1452,15 @@ static int uv_pipe_write_impl(uv_loop_t* loop,
       if (!req->event_handle) {
         uv_fatal_error(GetLastError(), "CreateEvent");
       }
+#ifdef WINONECORE
+	  {
+        return ERROR_NOT_SUPPORTED;
+#else
       if (!RegisterWaitForSingleObject(&req->wait_handle,
           req->overlapped.hEvent, post_completion_write_wait, (void*) req,
           INFINITE, WT_EXECUTEINWAITTHREAD)) {
         return GetLastError();
+#endif
       }
     }
   }
@@ -1655,8 +1694,10 @@ void uv_process_pipe_write_req(uv_loop_t* loop, uv_pipe_t* handle,
 
   if (handle->flags & UV_HANDLE_EMULATE_IOCP) {
     if (req->wait_handle != INVALID_HANDLE_VALUE) {
+#ifndef WINONECORE
       UnregisterWait(req->wait_handle);
       req->wait_handle = INVALID_HANDLE_VALUE;
+#endif
     }
     if (req->event_handle) {
       CloseHandle(req->event_handle);

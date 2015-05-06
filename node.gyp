@@ -337,7 +337,7 @@
             }
           },
           'libraries': [
-            '-lonecore_internal.lib',
+            '-lonecore.lib',
           ],
         }],
 

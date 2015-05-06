@@ -93,7 +93,9 @@ goto next-arg
 
 :args-done
 if "%target_arch%"=="arm" (
-    if not "%openssl_no_asm%"=="--openssl-no-asm" goto arm-requires-openssl-no-asm
+    if not "%withoutssl%"=="--without-ssl" (
+        if not "%openssl_no_asm%"=="--openssl-no-asm" goto arm-requires-openssl-no-asm
+    )
 )
 if "%winplat%"=="winonecore" (
     if not "%withoutssl%"=="--without-ssl" goto winonecore-requires-withoutssl

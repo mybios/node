@@ -736,9 +736,13 @@ void fs__mkdtemp(uv_fs_t* req) {
   WCHAR *cp, *ep;
   unsigned int tries, i;
   size_t len;
-  HCRYPTPROV h_crypt_prov;
   uint64_t v;
   BOOL released;
+#ifdef WINONECORE
+  NTSTATUS ntstatus;
+#else
+  HCRYPTPROV h_crypt_prov;
+#endif
 
   len = wcslen(req->pathw);
   ep = req->pathw + len;
@@ -747,18 +751,28 @@ void fs__mkdtemp(uv_fs_t* req) {
     return;
   }
 
+#ifndef WINONECORE
   if (!CryptAcquireContext(&h_crypt_prov, NULL, NULL, PROV_RSA_FULL,
                            CRYPT_VERIFYCONTEXT)) {
     SET_REQ_WIN32_ERROR(req, GetLastError());
     return;
   }
+#endif
 
   tries = TMP_MAX;
   do {
+#ifdef WINONECORE
+    ntstatus = BCryptGenRandom(NULL, (PUCHAR)&v, sizeof(v), BCRYPT_USE_SYSTEM_PREFERRED_RNG);
+    if (STATUS_SUCCESS != ntstatus) {
+      SET_REQ_WIN32_ERROR(req, ntstatus);
+      break;
+    }
+#else
     if (!CryptGenRandom(h_crypt_prov, sizeof(v), (BYTE*) &v)) {
       SET_REQ_WIN32_ERROR(req, GetLastError());
       break;
     }
+#endif
 
     cp = ep - num_x;
     for (i = 0; i < num_x; i++) {
@@ -777,8 +791,10 @@ void fs__mkdtemp(uv_fs_t* req) {
     }
   } while (--tries);
 
+#ifndef WINONECORE
   released = CryptReleaseContext(h_crypt_prov, 0);
   assert(released);
+#endif
   if (tries == 0) {
     SET_REQ_RESULT(req, -1);
   }

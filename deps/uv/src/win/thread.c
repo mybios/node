@@ -307,7 +307,11 @@ void uv_rwlock_wrunlock(uv_rwlock_t* rwlock) {
 
 
 int uv_sem_init(uv_sem_t* sem, unsigned int value) {
+#ifdef WINONECORE
+  *sem = CreateSemaphoreW(NULL, value, INT_MAX, NULL);
+#else
   *sem = CreateSemaphore(NULL, value, INT_MAX, NULL);
+#endif
   if (*sem == NULL)
     return uv_translate_sys_error(GetLastError());
   else
@@ -632,7 +636,11 @@ static int uv_cond_wait_helper(uv_cond_t* cond, uv_mutex_t* mutex,
 
   /* Wait for either event to become signaled due to <uv_cond_signal> being */
   /* called or <uv_cond_broadcast> being called. */
+#ifdef WINONECORE
+  result = WaitForMultipleObjectsEx(2, handles, FALSE, dwMilliseconds, FALSE);
+#else
   result = WaitForMultipleObjects(2, handles, FALSE, dwMilliseconds);
+#endif
 
   EnterCriticalSection(&cond->fallback.waiters_count_lock);
   cond->fallback.waiters_count--;
