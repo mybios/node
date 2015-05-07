@@ -421,7 +421,7 @@ static void uv_tcp_queue_accept(uv_tcp_t* handle, uv_tcp_accept_t* req) {
         req->wait_handle == INVALID_HANDLE_VALUE &&
 #ifdef WINONECORE
         !WSAWaitForMultipleEvents(1, &req->event_handle,
-            TRUE, WSA_INFINITE, TRUE)) {
+          TRUE, WSA_INFINITE, TRUE)) {
 #else
         !RegisterWaitForSingleObject(&req->wait_handle,
           req->event_handle, post_completion, (void*) req,
@@ -509,7 +509,7 @@ static void uv_tcp_queue_read(uv_loop_t* loop, uv_tcp_t* handle) {
         req->wait_handle == INVALID_HANDLE_VALUE &&
 #ifdef WINONECORE
         !WSAWaitForMultipleEvents(1, &req->event_handle, 
-            TRUE, WSA_INFINITE, TRUE)) {
+          TRUE, WSA_INFINITE, TRUE)) {
 #else
         !RegisterWaitForSingleObject(&req->wait_handle,
           req->event_handle, post_completion, (void*) req,
@@ -877,7 +877,7 @@ int uv_tcp_write(uv_loop_t* loop,
     if (handle->flags & UV_HANDLE_EMULATE_IOCP &&
 #ifdef WINONECORE
         !WSAWaitForMultipleEvents(1, &req->event_handle,
-            TRUE, WSA_INFINITE, TRUE)) {
+          TRUE, WSA_INFINITE, TRUE)) {
 #else
         !RegisterWaitForSingleObject(&req->wait_handle,
           req->event_handle, post_write_completion, (void*) req,

@@ -635,7 +635,6 @@ void uv_pipe_connect(uv_connect_t* req, uv_pipe_t* handle,
     if (GetLastError() == ERROR_PIPE_BUSY) {
       /* Wait for the server to make a pipe instance available. */
 #ifdef WINONECORE
-      { 
 		err = ERROR_NOT_SUPPORTED;
         goto error;
 #else
@@ -644,8 +643,8 @@ void uv_pipe_connect(uv_connect_t* req, uv_pipe_t* handle,
                              WT_EXECUTELONGFUNCTION)) {
         err = GetLastError();
         goto error;
-#endif
       }
+#endif
 
       REGISTER_HANDLE_REQ(loop, handle, req);
       handle->reqs_pending++;
