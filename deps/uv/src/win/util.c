@@ -336,9 +336,9 @@ uint64_t uv_get_total_memory(void) {
 }
 
 
+#ifndef WINONECORE
 int uv_parent_pid() {
   int parent_pid = -1;
-#ifndef WINONECORE
   HANDLE handle;
   PROCESSENTRY32 pe;
   DWORD current_pid = GetCurrentProcessId();
@@ -356,9 +356,9 @@ int uv_parent_pid() {
   }
 
   CloseHandle(handle);
-#endif
   return parent_pid;
 }
+#endif
 
 
 char** uv_setup_args(int argc, char** argv) {
@@ -788,10 +788,7 @@ static int is_windows_version_or_greater(DWORD os_major,
                                          DWORD os_minor,
                                          WORD service_pack_major,
                                          WORD service_pack_minor) {
-#ifdef WINONECORE
-    // Return 1 to indicate success (if running with onecore assume version is greater than Vista).
-    return 1;
-#else
+#ifndef WINONECORE
   OSVERSIONINFOEX osvi;
   DWORDLONG condition_mask = 0;
   int op = VER_GREATER_EQUAL;
@@ -816,6 +813,17 @@ static int is_windows_version_or_greater(DWORD os_major,
     VER_MAJORVERSION | VER_MINORVERSION | 
     VER_SERVICEPACKMAJOR | VER_SERVICEPACKMINOR,
     condition_mask);
+#else
+  OSVERSIONINFO info;
+  info.dwOSVersionInfoSize = sizeof(info);
+  if (GetVersionEx(&info)) {
+    if ((info.dwMajorVersion > os_major) ||
+       (info.dwMajorVersion == os_major && info.dwMinorVersion >= os_minor)) {
+      return 1;
+    } else {
+      return 0;
+    }
+  }
 #endif
 }
 
