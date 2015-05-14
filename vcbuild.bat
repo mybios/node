@@ -119,8 +119,8 @@ if defined noetw set noetw_arg=--without-etw& set noetw_msi_arg=/p:NoETW=1
 if defined noperfctr set noperfctr_arg=--without-perfctr& set noperfctr_msi_arg=/p:NoPerfCtr=1
 if "%engine%"=="chakra" set engine_arg=--use-chakra
 if "%target_type%"=="uwp-dll" (
-    set target_type_arg=--uwp-dll
-	set winplat_arg=--win-onecore
+  set target_type_arg=--uwp-dll
+  set winplat_arg=--win-onecore
 )
 
 if "%i18n_arg%"=="full-icu" set i18n_arg=--with-intl=full-icu
