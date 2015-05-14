@@ -62,12 +62,6 @@
 
     startup.resolveArgv0();
 
-    // load the wincore patch to fix some known issues
-    // when building for Windows OneCore
-    if (NativeModule.exists('_winonecore_patch')) {
-        NativeModule.require('_winonecore_patch');
-    }
-
     // There are various modes that Node can run in. The most common two
     // are running from a script and running the REPL - but there are a few
     // others like the debugger or running --eval arguments. Here we decide
@@ -226,7 +220,7 @@
       };
 
       global.__defineGetter__('console', function () {
-          if (process.noconsole) {
+          if (!process.hasConsole) {
               return emptyConsole;
           } else {
               return NativeModule.require('console');
@@ -516,7 +510,7 @@
   startup.processStdio = function() {
       var stdin, stdout, stderr;
 
-    if (process.noconsole) {
+    if (!process.hasConsole) {
         stdin = {
             id: '__mock_stdin',
             write: function () { },

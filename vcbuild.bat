@@ -80,8 +80,7 @@ if /i "%1"=="build-release"     set build_release=1&goto arg-ok
 if /i "%1"=="v8"                set engine=v8&goto arg-ok
 if /i "%1"=="chakra"            set engine=chakra&goto arg-ok
 if /i "%1"=="openssl-no-asm"    set openssl_no_asm=--openssl-no-asm&goto arg-ok
-if /i "%1"=="winonecore"        set winplat=winonecore&goto arg-ok
-if /i "%1"=="builddll"          set buildtype=builddll&goto arg-ok
+if /i "%1"=="uwp-dll"           set target_type=uwp-dll&goto arg-ok
 if /i "%1"=="withoutssl"        set withoutssl=--without-ssl&goto arg-ok
 
 echo Warning: ignoring invalid command line option `%1`.
@@ -97,7 +96,8 @@ if "%target_arch%"=="arm" (
         if not "%openssl_no_asm%"=="--openssl-no-asm" goto arm-requires-openssl-no-asm
     )
 )
-if "%winplat%"=="winonecore" (
+if "%target_type%"=="uwp-dll" (
+    set winplat=win-onecore
     if not "%withoutssl%"=="--without-ssl" goto winonecore-requires-withoutssl
 )
 if defined upload goto upload
@@ -118,8 +118,10 @@ if defined nosnapshot set nosnapshot_arg=--without-snapshot
 if defined noetw set noetw_arg=--without-etw& set noetw_msi_arg=/p:NoETW=1
 if defined noperfctr set noperfctr_arg=--without-perfctr& set noperfctr_msi_arg=/p:NoPerfCtr=1
 if "%engine%"=="chakra" set engine_arg=--use-chakra
-if "%winplat%"=="winonecore" set winplat_arg=--winonecore
-if "%buildtype%"=="builddll" set buildtype_arg=--builddll
+if "%target_type%"=="uwp-dll" (
+    set target_type_arg=--uwp-dll
+	set winplat_arg=--win-onecore
+)
 
 if "%i18n_arg%"=="full-icu" set i18n_arg=--with-intl=full-icu
 if "%i18n_arg%"=="small-icu" set i18n_arg=--with-intl=small-icu
@@ -186,7 +188,7 @@ goto exit
 if defined noprojgen goto msbuild
 
 @rem Generate the VS project.
-python configure %download_arg% %i18n_arg% %debug_arg% %nosnapshot_arg% %noetw_arg% %noperfctr_arg% %engine_arg% %openssl_no_asm% %winplat_arg% %buildtype_arg% %withoutssl% --dest-cpu=%target_arch% --tag=%TAG%
+python configure %download_arg% %i18n_arg% %debug_arg% %nosnapshot_arg% %noetw_arg% %noperfctr_arg% %engine_arg% %openssl_no_asm% %winplat_arg% %target_type_arg% %withoutssl% --dest-cpu=%target_arch% --tag=%TAG%
 if errorlevel 1 goto create-msvs-files-failed
 if not exist node.sln goto create-msvs-files-failed
 echo Project files generated.
@@ -204,7 +206,7 @@ if errorlevel 1 goto exit
 if defined nosign goto licensertf
 
 set releasebinaryname=node.exe
-if "%buildtype%"=="builddll" set releasebinaryname=node.dll
+if "%target_type%"=="uwp-dll" set releasebinaryname=node.dll
 
 signtool sign /a /d "Node.js" /t http://timestamp.globalsign.com/scripts/timestamp.dll Release\%releasebinaryname%
 if errorlevel 1 echo Failed to sign %releasebinaryname%&goto exit

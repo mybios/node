@@ -111,7 +111,7 @@
             'src/win/winsock.h',
           ],
           'conditions' : [
-          [ 'node_winonecore=="false"', {
+          [ 'node_win_onecore=="false"', {
             'link_settings': {
               'libraries': [
                 '-ladvapi32',
@@ -276,7 +276,7 @@
         ['uv_library=="shared_library"', {
           'defines': [ 'BUILDING_UV_SHARED=1' ]
         }],
-        ['node_winonecore=="true"', {
+        ['node_win_onecore=="true"', {
           'defines': [ 'WINONECORE=1' ],
         }],
       ]

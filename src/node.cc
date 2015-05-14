@@ -146,7 +146,7 @@ static const char* icu_data_dir = NULL;
 bool no_deprecation = false;
 
 // Turn off the console if node.dll is built for consumption within a Universal Windows Platform app
-#ifdef NODE_DLL
+#ifdef UWP_DLL
 bool no_console = false;
 #endif
 
@@ -2718,11 +2718,15 @@ void SetupProcessObject(Environment* env,
     READONLY_PROPERTY(process, "traceDeprecation", True(env->isolate()));
   }
 
-#ifdef NODE_DLL
+#ifdef UWP_DLL
   if (no_console) {
-      READONLY_PROPERTY(process, "noconsole", True(env->isolate()));
+    READONLY_PROPERTY(process, "hasConsole", False(env->isolate()));
   }
+
+  READONLY_PROPERTY(process, "uwpDLL", True(env->isolate()));
 #endif
+  READONLY_PROPERTY(process, "hasConsole", True(env->isolate()));
+  READONLY_PROPERTY(process, "uwpDLL", False(env->isolate()));
 
   size_t exec_path_len = 2 * PATH_MAX;
   char* exec_path = new char[exec_path_len];
@@ -2955,7 +2959,7 @@ static void PrintHelp() {
 #endif
          "  --enable-ssl2        enable ssl2\n"
          "  --enable-ssl3        enable ssl3\n"
-#ifdef NODE_DLL
+#ifdef UWP_DLL
          "  --no-console         turn off console when node.dll is being used within a Universal Windows Platform application\n"
 #endif
          "\n"
@@ -3075,7 +3079,7 @@ static void ParseArgs(int* argc,
     } else if (strncmp(arg, "--icu-data-dir=", 15) == 0) {
       icu_data_dir = arg + 15;
 #endif
-#ifdef NODE_DLL
+#ifdef UWP_DLL
     }
     else if (strcmp(arg, "--no-console") == 0) {
         no_console = true;

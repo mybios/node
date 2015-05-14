@@ -15,16 +15,8 @@
     'node_use_mdb%': 'false',
     'node_v8_options%': '',
     'node_use_chakra%': 'false',
-    'node_winonecore%': 'false',
-    'node_builddll%': 'false',
-    'additional_library_files': [],
-    'conditions' : [
-    [ 'node_winonecore=="true"', {
-      'additional_library_files': 
-      [
-        'lib/_winonecore_patch.js',
-      ],
-    }]],
+    'node_win_onecore%': 'false',
+    'node_uwp_dll%': 'false',
     'library_files': [
       'src/node.js',
       'lib/_debugger.js',
@@ -78,7 +70,6 @@
       'lib/vm.js',
       'lib/zlib.js',
       'deps/debugger-agent/lib/_debugger_agent.js',
-      '<@(additional_library_files)',
     ],
   },
 
@@ -323,27 +314,9 @@
           'dependencies': [ 'deps/chakrashim/chakrashim.gyp:chakrashim' ],
         }],
 
-        [ 'node_winonecore=="true"', {
-          'defines': [ 'WINONECORE=1' ],
-          'msvs_settings': {
-            'VCLinkerTool': {
-              'IgnoreDefaultLibraryNames' : [
-                'kernel32.lib',
-                'advapi32.lib',
-              ],
-              'AdditionalLibraryDirectories': [
-                'win/lib/<(target_arch)',
-              ],
-            }
-          },
-          'libraries': [
-            '-lonecore.lib',
-          ],
-        }],
-
-        [ 'node_builddll=="true"', {
+        [ 'node_uwp_dll=="true"', {
           'type': 'loadable_module',
-          'defines': [ 'NODE_DLL=1' ],
+          'defines': [ 'UWP_DLL=1' ],
         }],
 
         [ 'node_shared_zlib=="false"', {
@@ -373,7 +346,7 @@
             '_UNICODE=1',
           ],          
           'conditions' : [
-          [ 'node_winonecore=="false"', {
+          [ 'node_win_onecore=="false"', {
             'libraries': [ '-lpsapi.lib' ],
           }]],
         }, { # POSIX
