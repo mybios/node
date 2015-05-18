@@ -189,10 +189,16 @@ int uv_stdio_pipe_server(uv_loop_t* loop, uv_pipe_t* handle, DWORD access,
   for (;;) {
     uv_unique_pipe_name(ptr, name, nameSize);
 
-    pipeHandle = CreateNamedPipeW(name,
+#ifndef WINONECORE
+    pipeHandle = CreateNamedPipeA(name,
       access | FILE_FLAG_OVERLAPPED | FILE_FLAG_FIRST_PIPE_INSTANCE,
       PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT, 1, 65536, 65536, 0,
       NULL);
+#else
+	SetLastError(ERROR_NOT_SUPPORTED);
+	goto error;
+#endif
+
 
     if (pipeHandle != INVALID_HANDLE_VALUE) {
       /* No name collisions.  We're done. */
