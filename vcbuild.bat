@@ -92,13 +92,13 @@ goto next-arg
 
 :args-done
 if "%target_arch%"=="arm" (
-    if not "%withoutssl%"=="--without-ssl" (
-        if not "%openssl_no_asm%"=="--openssl-no-asm" goto arm-requires-openssl-no-asm
-    )
+  if not "%withoutssl%"=="--without-ssl" (
+    if not "%openssl_no_asm%"=="--openssl-no-asm" goto arm-requires-openssl-no-asm
+  )
 )
 if "%target_type%"=="uwp-dll" (
-    set winplat=win-onecore
-    if not "%withoutssl%"=="--without-ssl" goto winonecore-requires-withoutssl
+  set winplat=win-onecore
+  if not "%withoutssl%"=="--without-ssl" goto winonecore-requires-withoutssl
 )
 if defined upload goto upload
 if defined jslint goto jslint
