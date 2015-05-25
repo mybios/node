@@ -182,6 +182,7 @@ static HANDLE open_named_pipe(const WCHAR* name, DWORD* duplex_flags) {
 
 int uv_stdio_pipe_server(uv_loop_t* loop, uv_pipe_t* handle, DWORD access,
     char* name, size_t nameSize) {
+#ifndef WINONECORE
   HANDLE pipeHandle;
   int err;
   char* ptr = (char*)handle;
@@ -189,16 +190,10 @@ int uv_stdio_pipe_server(uv_loop_t* loop, uv_pipe_t* handle, DWORD access,
   for (;;) {
     uv_unique_pipe_name(ptr, name, nameSize);
 
-#ifndef WINONECORE
     pipeHandle = CreateNamedPipeA(name,
       access | FILE_FLAG_OVERLAPPED | FILE_FLAG_FIRST_PIPE_INSTANCE,
       PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT, 1, 65536, 65536, 0,
       NULL);
-#else
-	SetLastError(ERROR_NOT_SUPPORTED);
-	goto error;
-#endif
-
 
     if (pipeHandle != INVALID_HANDLE_VALUE) {
       /* No name collisions.  We're done. */
@@ -233,6 +228,9 @@ int uv_stdio_pipe_server(uv_loop_t* loop, uv_pipe_t* handle, DWORD access,
   }
 
   return err;
+#else
+  return ERROR_NOT_SUPPORTED;
+#endif
 }
 
 
