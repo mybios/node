@@ -481,14 +481,60 @@ void fs__open(uv_fs_t* req) {
   attributes |= FILE_FLAG_BACKUP_SEMANTICS;
 
   file = CreateFileW(req->pathw,
-                     access,
-                     share,
-                     NULL,
-                     disposition,
-                     attributes,
-                     NULL);
+          access,
+          share,
+          NULL,
+          disposition,
+          attributes,
+          NULL);
   if (file == INVALID_HANDLE_VALUE) {
     DWORD error = GetLastError();
+#ifdef UWP_DLL
+    /* UWP limits the folders that can be accessed. If we get a permission error, */
+    /* try to write the file to root folder in the local app data store. */
+    if ((error == ERROR_ACCESS_DENIED) && (access == FILE_GENERIC_WRITE)) {
+      WCHAR localFolderPath[MAX_PATH];
+      HRESULT hr = GetLocalFolderPath(localFolderPath);
+      if (FAILED(hr)) {
+        SET_REQ_WIN32_ERROR(req, HRESULT_CODE(hr));
+        return;
+      }
+        
+      /* Get the file name without the path and append to root folder of the app data store */
+      WCHAR *next_token = NULL;
+      WCHAR temp[MAX_PATH];
+      wcscpy_s(temp, MAX_PATH, req->pathw);
+      WCHAR *token = wcstok(temp, L"\\", next_token);
+      WCHAR fileName[MAX_PATH];
+      while (token) {
+        token = wcstok(NULL, L"\\", next_token);
+        if (token) {
+          wcscpy_s(fileName, MAX_PATH, token);
+        } else {
+          break;
+        }
+      }
+      wcscat_s(localFolderPath, MAX_PATH, L"\\");
+      wcscat_s(localFolderPath, MAX_PATH, fileName);
+      UINT size = wcslen(req->pathw);
+      memset(req->pathw, 0, size);
+      wcscpy_s(req->pathw, size, localFolderPath);
+    }
+
+    /* Try calling CreateFileW again with the updated path*/
+    file = CreateFileW(req->pathw,
+            access,
+            share,
+            NULL,
+            disposition,
+            attributes,
+            NULL);
+    if (file == INVALID_HANDLE_VALUE) {
+      error = GetLastError();
+    } else {
+      goto openosfhandle;
+    }
+#endif
     if (error == ERROR_FILE_EXISTS && (flags & _O_CREAT) &&
         !(flags & _O_EXCL)) {
       /* Special case: when ERROR_FILE_EXISTS happens and O_CREAT was */
@@ -500,6 +546,7 @@ void fs__open(uv_fs_t* req) {
     return;
   }
 
+openosfhandle:
   fd = _open_osfhandle((intptr_t) file, flags);
   if (fd < 0) {
     /* The only known failure mode for _open_osfhandle() is EMFILE, in which
