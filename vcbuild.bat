@@ -42,7 +42,6 @@ set engine=v8
 set openssl_no_asm=
 set winplat=
 set buildtype=
-set withoutssl=
 
 :next-arg
 if "%1"=="" goto args-done
@@ -81,7 +80,6 @@ if /i "%1"=="v8"                set engine=v8&goto arg-ok
 if /i "%1"=="chakra"            set engine=chakra&goto arg-ok
 if /i "%1"=="openssl-no-asm"    set openssl_no_asm=--openssl-no-asm&goto arg-ok
 if /i "%1"=="uwp-dll"           set target_type=uwp-dll&goto arg-ok
-if /i "%1"=="withoutssl"        set withoutssl=--without-ssl&goto arg-ok
 
 echo Warning: ignoring invalid command line option `%1`.
 
@@ -92,13 +90,7 @@ goto next-arg
 
 :args-done
 if "%target_arch%"=="arm" (
-  if not "%withoutssl%"=="--without-ssl" (
-    if not "%openssl_no_asm%"=="--openssl-no-asm" goto arm-requires-openssl-no-asm
-  )
-)
-if "%target_type%"=="uwp-dll" (
-  set winplat=win-onecore
-  if not "%withoutssl%"=="--without-ssl" goto winonecore-requires-withoutssl
+  if not "%openssl_no_asm%"=="--openssl-no-asm" goto arm-requires-openssl-no-asm
 )
 if defined upload goto upload
 if defined jslint goto jslint
@@ -188,7 +180,7 @@ goto exit
 if defined noprojgen goto msbuild
 
 @rem Generate the VS project.
-python configure %download_arg% %i18n_arg% %debug_arg% %nosnapshot_arg% %noetw_arg% %noperfctr_arg% %engine_arg% %openssl_no_asm% %winplat_arg% %target_type_arg% %withoutssl% --dest-cpu=%target_arch% --tag=%TAG%
+python configure %download_arg% %i18n_arg% %debug_arg% %nosnapshot_arg% %noetw_arg% %noperfctr_arg% %engine_arg% %openssl_no_asm% %winplat_arg% %target_type_arg% --dest-cpu=%target_arch% --tag=%TAG%
 if errorlevel 1 goto create-msvs-files-failed
 if not exist node.sln goto create-msvs-files-failed
 echo Project files generated.
@@ -291,11 +283,6 @@ goto exit
 :arm-requires-openssl-no-asm
 echo openssl asm is currently not supported on arm
 echo use 'openssl-no-asm' as additional argument 
-goto exit
-
-:winonecore-requires-withoutssl
-echo openssl is currently not supported when building with 'winonecore'
-echo Use the argument 'withoutssl' to build without openssl
 goto exit
 
 :help
