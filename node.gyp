@@ -317,6 +317,7 @@
         [ 'node_uwp_dll=="true"', {
           'type': 'loadable_module',
           'defines': [ 'UWP_DLL=1' ],
+          'include_dirs': [ 'deps/logger/include'],
         }],
 
         [ 'node_shared_zlib=="false"', {
@@ -333,6 +334,10 @@
 
         [ 'node_shared_libuv=="false"', {
           'dependencies': [ 'deps/uv/uv.gyp:libuv' ],
+        }],
+
+        [ 'node_uwp_dll=="true"', {
+          'dependencies': [ 'deps/logger/logger.gyp:logger' ],
         }],
 
         [ 'OS=="win"', {

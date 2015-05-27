@@ -3771,5 +3771,12 @@ int Start(int argc, char** argv) {
   return code;
 }
 
+#ifdef UWP_DLL
+int _cdecl Start(int argc, char *argv[], const logger::ILogger* logger) {
+  node::logger::SetLogger(logger);
+  return Start(argc, argv);
+}
+#endif
+
 
 }  // namespace node

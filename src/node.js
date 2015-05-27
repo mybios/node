@@ -45,6 +45,8 @@
     startup.globalVariables();
     startup.globalTimeouts();
     startup.globalConsole();
+    if (!process.hasConsole)
+        setConsoleAsLogger();
 
     startup.processAssert();
     startup.processConfig();
@@ -226,6 +228,34 @@
               return NativeModule.require('console');
           }
       });
+  };
+
+  // override console with logger
+  function setConsoleAsLogger() {
+      var util = NativeModule.require('util');
+      var logger = process.binding('logger_wrap').logger;
+
+      var methods = {
+          'debug': logger.logLevels.verbose,
+          'log': logger.logLevels.verbose,
+          'info': logger.logLevels.info,
+          'warn': logger.logLevels.warn,
+          'warning': logger.logLevels.warn,
+          'error': logger.logLevels.error
+      };
+
+      for (var method in methods) {
+          // whenever a console method will be called, we will call the logger with the appropriate log level
+          console[method] = (function (methodName, i) {
+              var logLevel = i;
+              var originalMethod = console[methodName];
+
+              return function () {
+                  logger.log(logLevel, util.format.apply(this, arguments));
+                  originalMethod.apply(this, arguments);
+              }
+          }).apply(this, [method, methods[method]]);
+      }
   };
 
 
