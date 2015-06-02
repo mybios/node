@@ -2,6 +2,7 @@
 #include <wrl/client.h>
 #include <wrl/wrappers/corewrappers.h>
 
+// gets the path to local storage of a UWP application.
 extern "C" HRESULT GetLocalFolderPath(WCHAR* path) {
   HRESULT hr;
   Microsoft::WRL::ComPtr<ABI::Windows::Storage::IApplicationDataStatics> applicationDataStatics;

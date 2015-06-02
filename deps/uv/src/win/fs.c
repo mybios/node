@@ -481,12 +481,12 @@ void fs__open(uv_fs_t* req) {
   attributes |= FILE_FLAG_BACKUP_SEMANTICS;
 
   file = CreateFileW(req->pathw,
-          access,
-          share,
-          NULL,
-          disposition,
-          attributes,
-          NULL);
+                     access,
+                     share,
+                     NULL,
+                     disposition,
+                     attributes,
+                     NULL);
   if (file == INVALID_HANDLE_VALUE) {
     DWORD error = GetLastError();
 #ifdef UWP_DLL

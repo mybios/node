@@ -20,7 +20,7 @@
 
 // stubs.cc
 // Included in addon.gypi to enable building an Addon built with onecore.lib 
-//(workaround for linker errors).
+// (workaround for linker errors).
 
 #include <Windows.h>
 #include <assert.h>
