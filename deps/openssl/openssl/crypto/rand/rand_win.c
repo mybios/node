@@ -690,6 +690,7 @@ static void readtimer(void)
 
 static void readscreen(void)
 {
+#ifndef WINONECORE
 # if !defined(OPENSSL_SYS_WINCE) && !defined(OPENSSL_SYS_WIN32_CYGWIN)
     HDC hScrDC;                 /* screen DC */
     HDC hMemDC;                 /* memory DC */
@@ -754,6 +755,7 @@ static void readscreen(void)
     DeleteDC(hMemDC);
     DeleteDC(hScrDC);
 # endif                         /* !OPENSSL_SYS_WINCE */
+# endif                         /* !WINONECORE */
 }
 
 #endif

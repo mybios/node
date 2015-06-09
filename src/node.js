@@ -46,7 +46,7 @@
     startup.globalTimeouts();
     startup.globalConsole();
     if (!process.hasConsole)
-        setConsoleAsLogger();
+        overrideConsoleWithNativeLogger();
 
     startup.processAssert();
     startup.processConfig();
@@ -235,7 +235,7 @@
   };
 
   // override console with a logger to allow Node.js UWP to redirect output to file
-  function setConsoleAsLogger() {
+  function overrideConsoleWithNativeLogger() {
     var util = NativeModule.require('util');
     var logger = process.binding('logger_wrap').logger;
 

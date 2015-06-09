@@ -180,9 +180,9 @@ static HANDLE open_named_pipe(const WCHAR* name, DWORD* duplex_flags) {
 }
 
 
+#ifndef WINONECORE
 int uv_stdio_pipe_server(uv_loop_t* loop, uv_pipe_t* handle, DWORD access,
     char* name, size_t nameSize) {
-#ifndef WINONECORE
   HANDLE pipeHandle;
   int err;
   char* ptr = (char*)handle;
@@ -228,10 +228,8 @@ int uv_stdio_pipe_server(uv_loop_t* loop, uv_pipe_t* handle, DWORD access,
   }
 
   return err;
-#else
-  return ERROR_NOT_SUPPORTED;
-#endif
 }
+#endif
 
 
 static int uv_set_pipe_handle(uv_loop_t* loop,
