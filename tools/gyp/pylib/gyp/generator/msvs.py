@@ -2588,6 +2588,11 @@ def _GetMSBuildGlobalProperties(spec, guid, gyp_file_name):
     if platform_name == 'ARM':
       props.append(['WindowsSDKDesktopARMSupport', 'true'])
       break
+
+  target_platform_version = os.environ.get('WindowsTargetPlatformVersion')
+  if target_platform_version:
+    props.append(['WindowsTargetPlatformVersion', target_platform_version])
+
   return [props]
 
 def _GetMSBuildConfigurationDetails(spec, build_file):

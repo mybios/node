@@ -379,6 +379,7 @@ def main():
 
   natives = sys.argv[i]
   source_files = sys.argv[(i + 1):]
+
   JS2C(source_files, [natives], namespace)
 
 if __name__ == "__main__":

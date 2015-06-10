@@ -206,6 +206,20 @@
           'BUILDING_UV_SHARED=1',
         ],
       }],
+	  ['node_win_onecore=="true"', {
+	    'defines': [ 'WINONECORE=1' ],
+	    'msvs_settings': {
+		  'VCLinkerTool': {
+		    'IgnoreDefaultLibraryNames' : [
+			  'kernel32.lib',
+			  'advapi32.lib',
+		    ],
+		  }
+	    },
+	    'libraries': [
+		  '-lonecore.lib',
+	    ],
+	  }],
       [ 'OS in "linux freebsd openbsd solaris"', {
         'cflags': [ '-pthread', ],
         'ldflags': [ '-pthread' ],

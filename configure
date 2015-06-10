@@ -322,6 +322,16 @@ parser.add_option('--engine',
     action='store',
     dest='engine',
     help='Use specified JS engine (default is V8)')
+	
+parser.add_option("--win-onecore",
+    action="store_true",
+    dest="win_onecore",
+    help="Build Node.js for Windows OneCore based platforms")
+	
+parser.add_option("--uwp-dll",
+    action="store_true",
+    dest="uwp_dll",
+    help="Build Node.js as a DLL for consumption within a Universal Windows Platform application")
 
 (options, args) = parser.parse_args()
 
@@ -586,6 +596,11 @@ def configure_node(o):
     raise Exception('Performance counter is only supported on Windows.')
   else:
     o['variables']['node_use_perfctr'] = 'false'
+
+  # Assign variables for to support Universal Windows Platform
+  if flavor == 'win':
+    o['variables']['node_win_onecore'] = b(options.win_onecore)
+    o['variables']['node_uwp_dll'] = b(options.uwp_dll)
 
   if options.tag:
     o['variables']['node_tag'] = '-' + options.tag
