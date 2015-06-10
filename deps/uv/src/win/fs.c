@@ -502,7 +502,7 @@ void fs__open(uv_fs_t* req) {
       /* Get the file name without the path and append to root folder of the app data store */
       WCHAR *next_token = NULL;
       WCHAR temp[MAX_PATH];
-      wcscpy_s(temp, MAX_PATH, req->pathw);
+      wcscpy_s(temp, MAX_PATH, req->file.pathw);
       WCHAR *token = wcstok(temp, L"\\", next_token);
       WCHAR fileName[MAX_PATH];
       while (token) {
@@ -515,13 +515,13 @@ void fs__open(uv_fs_t* req) {
       }
       wcscat_s(localFolderPath, MAX_PATH, L"\\");
       wcscat_s(localFolderPath, MAX_PATH, fileName);
-      UINT size = wcslen(req->pathw);
-      memset(req->pathw, 0, size);
-      wcscpy_s(req->pathw, size, localFolderPath);
+      UINT size = wcslen(req->file.pathw);
+      memset(req->file.pathw, 0, size);
+      wcscpy_s(req->file.pathw, size, localFolderPath);
     }
 
     /* Try calling CreateFileW again with the updated path*/
-    file = CreateFileW(req->pathw,
+    file = CreateFileW(req->file.pathw,
             access,
             share,
             NULL,
