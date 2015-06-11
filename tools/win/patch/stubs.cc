@@ -25,47 +25,6 @@
 #include <Windows.h>
 #include <assert.h>
 
-HANDLE WINAPI CreateTimerQueue(void)
-{
-	assert(FALSE);
-	return INVALID_HANDLE_VALUE;
-}
-
-BOOL WINAPI CreateTimerQueueTimer(
-	_Out_    PHANDLE             phNewTimer,
-	_In_opt_ HANDLE              TimerQueue,
-	_In_     WAITORTIMERCALLBACK Callback,
-	_In_opt_ PVOID               Parameter,
-	_In_     DWORD               DueTime,
-	_In_     DWORD               Period,
-	_In_     ULONG               Flags
-	)
-{
-	assert(FALSE);
-	return FALSE;
-}
-
-BOOL WINAPI ChangeTimerQueueTimer(
-	_In_opt_ HANDLE TimerQueue,
-	_Inout_  HANDLE Timer,
-	_In_     ULONG  DueTime,
-	_In_     ULONG  Period
-	)
-{
-	assert(FALSE);
-	return FALSE;
-}
-
-BOOL WINAPI DeleteTimerQueueTimer(
-	_In_opt_ HANDLE TimerQueue,
-	_In_     HANDLE Timer,
-	_In_opt_ HANDLE CompletionEvent
-	)
-{
-	assert(FALSE);
-	return FALSE;
-}
-
 BOOL WINAPI GetProcessAffinityMask(
 	_In_  HANDLE     hProcess,
 	_Out_ PDWORD_PTR lpProcessAffinityMask,
@@ -100,15 +59,6 @@ BOOL WINAPI RegisterWaitForSingleObject(
 
 BOOL WINAPI UnregisterWait(
 	_In_ HANDLE WaitHandle
-	)
-{
-	assert(FALSE);
-	return FALSE;
-}
-
-BOOL WINAPI UnregisterWaitEx(
-	_In_     HANDLE WaitHandle,
-	_In_opt_ HANDLE CompletionEvent
 	)
 {
 	assert(FALSE);
