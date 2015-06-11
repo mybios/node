@@ -58,7 +58,7 @@ node.exe [local_repo]\deps\npm\node_modules\node-gyp\bin\node-gyp.js rebuild --n
 To build a native addon module for a [Universal Windows Platform app](https://github.com/ms-iot/node-uwp):
 
 ```sh
-node.exe [local_repo]\deps\npm\node_modules\node-gyp\bin\node-gyp.js rebuild --nodedir=[local_repo] --msvs_version=2015 --node_win_onecore
+node.exe [local_repo]\deps\npm\node_modules\node-gyp\bin\node-gyp.js rebuild --nodedir=[local_repo] --node_win_onecore
 ```
 
 To install a native addon module:
