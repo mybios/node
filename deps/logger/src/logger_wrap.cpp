@@ -45,7 +45,6 @@ namespace logger {
     HandleScope scope(isolate);
 
     if (s_logger == nullptr) {
-      isolate->ThrowException(Exception::Error(String::New(L"No logger is currently set")));
       return;
     }
 
