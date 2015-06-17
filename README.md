@@ -33,7 +33,7 @@ To build node.exe:
 vcbuild chakra nosign [x86|x64|arm]
 ```
 
-To build node.dll for a [Universal Windows Platform app](https://github.com/ms-iot/node-uwp):
+To build node.dll for the [Universal Windows Platform wrapper](https://github.com/ms-iot/node-uwp-wrapper):
 
 ```sh
 vcbuild chakra nosign uwp-dll [x86|x64|arm]
@@ -55,7 +55,7 @@ To build a native addon module:
 node.exe [local_repo]\deps\npm\node_modules\node-gyp\bin\node-gyp.js rebuild --nodedir=[local_repo]
 ```
 
-To build a native addon module for a [Universal Windows Platform app](https://github.com/ms-iot/node-uwp):
+To build a native addon module for the [Universal Windows Platform wrapper](https://github.com/ms-iot/node-uwp-wrapper):
 
 ```sh
 node.exe [local_repo]\deps\npm\node_modules\node-gyp\bin\node-gyp.js rebuild --nodedir=[local_repo] --node_win_onecore
