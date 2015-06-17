@@ -2599,17 +2599,9 @@ void SetupProcessObject(Environment* env,
   READONLY_PROPERTY(versions,
                     "node",
                     OneByteString(env->isolate(), NODE_VERSION + 1));
-
-#ifdef USE_CHAKRA
-#define NODE_JS_ENGINE  "chakra"
-#else
-#define NODE_JS_ENGINE  "v8"
-#endif
   READONLY_PROPERTY(versions,
                     NODE_ENGINE,
                     OneByteString(env->isolate(), V8::GetVersion()));
-#undef NODE_JS_ENGINE
-
   READONLY_PROPERTY(versions,
                     "uv",
                     OneByteString(env->isolate(), uv_version_string()));
