@@ -38,9 +38,11 @@ set noperfctr_msi_arg=
 set i18n_arg=
 set download_arg=
 set build_release=
-set engine=
+set engine=v8
 set engine_arg=
 set openssl_no_asm=
+set sdk=
+set save_release=
 
 :next-arg
 if "%1"=="" goto args-done
@@ -78,6 +80,7 @@ if /i "%1"=="build-release" set build_release=1&goto arg-ok
 if /i "%1"=="v8"            set engine=v8&goto arg-ok
 if /i "%1"=="chakra"        set engine=chakra&goto arg-ok
 if /i "%1"=="openssl-no-asm" set openssl_no_asm=--openssl-no-asm&goto arg-ok
+if /i "%1"=="sdk"           set sdk=1&goto arg-ok
 
 echo Warning: ignoring invalid command line option `%1`.
 
@@ -102,6 +105,15 @@ if defined build_release (
   set i18n_arg=small-icu
 )
 
+if defined sdk (
+  if not defined msi (
+    set save_release=1
+  ) else (
+    set noprojgen=1
+    set nobuild=1
+  )
+)
+
 if "%config%"=="Debug" set debug_arg=--debug
 if "%target_arch%"=="x64" set msiplatform=x64
 if defined nosnapshot set nosnapshot_arg=--without-snapshot
@@ -113,6 +125,7 @@ if "%i18n_arg%"=="full-icu" set i18n_arg=--with-intl=full-icu
 if "%i18n_arg%"=="small-icu" set i18n_arg=--with-intl=small-icu
 if "%i18n_arg%"=="intl-none" set i18n_arg=--with-intl=none
 
+if defined NODE_VERSION_TAG set TAG=%NODE_VERSION_TAG%
 if defined NIGHTLY set TAG=nightly-%NIGHTLY%
 
 @rem Set environment for msbuild
@@ -189,10 +202,21 @@ if errorlevel 1 goto exit
 
 :sign
 @rem Skip signing if the `nosign` option was specified.
-if defined nosign goto licensertf
+if defined nosign goto save_release
+@rem Also skip signing if building msi with sdk
+if defined sdk if defined msi goto save_release
 
 signtool sign /a /d "Node.js" /t http://timestamp.globalsign.com/scripts/timestamp.dll Release\node.exe
 if errorlevel 1 echo Failed to sign exe&goto exit
+
+:save_release
+@rem Save a copy of .exe/.lib for release
+if not defined save_release goto licensertf
+
+robocopy "%~dp0%config%" "%~dp0%config%\%target_arch%" node.exe /NJH /NFL /NDL /NP
+if errorlevel 8 echo Failed to save exe&goto exit
+robocopy "%~dp0%config%" "%~dp0%config%\sdk\%target_arch%" node.lib /NJH /NFL /NDL /NP
+if errorlevel 8 echo Failed to save lib&goto exit
 
 :licensertf
 @rem Skip license.rtf generation if not requested.
@@ -210,12 +234,24 @@ if not defined NIGHTLY goto msibuild
 set NODE_VERSION=%NODE_VERSION%.%NIGHTLY%
 
 :msibuild
-echo Building node-%NODE_VERSION%
-msbuild "%~dp0tools\msvs\msi\nodemsi.sln" /m /t:Clean,Build /p:Configuration=%config% /p:Platform=%msiplatform% /p:NodeVersion=%NODE_VERSION% %noetw_msi_arg% %noperfctr_msi_arg% /clp:NoSummary;NoItemAndPropertyList;Verbosity=minimal /nologo
+if defined NODE_VERSION_TAG (
+  set NODE_FULL_VERSION=%NODE_VERSION%.%NODE_VERSION_TAG%
+) else (
+  set NODE_FULL_VERSION=%NODE_VERSION%
+)
+if not defined sdk (
+  set NODE_NAME=Node.js
+  set NODE_MSIOUTPUT=node-v%NODE_FULL_VERSION%-%msiplatform%
+) else (
+  set NODE_NAME="Node.js (%engine%)"
+  set NODE_MSIOUTPUT=node-%engine%-v%NODE_FULL_VERSION%-%msiplatform%
+)
+echo Building %NODE_MSIOUTPUT%
+msbuild "%~dp0tools\msvs\msi\nodemsi.sln" /m /t:Clean,Build /p:Configuration=%config% /p:Platform=%msiplatform% /p:TargetArch=%target_arch% /p:NodeMsiOutput="%NODE_MSIOUTPUT%" /p:NodeEngine=%engine% /p:NodeName=%NODE_NAME% /p:NodeUseSdk=%sdk% /p:NodeFullVersion=%NODE_FULL_VERSION% /p:NodeVersion=%NODE_VERSION% %noetw_msi_arg% %noperfctr_msi_arg% /clp:NoSummary;NoItemAndPropertyList;Verbosity=minimal /nologo
 if errorlevel 1 goto exit
 
 if defined nosign goto run
-signtool sign /a /d "Node.js" /t http://timestamp.globalsign.com/scripts/timestamp.dll Release\node-v%NODE_VERSION%-%msiplatform%.msi
+signtool sign /a /d "Node.js" /t http://timestamp.globalsign.com/scripts/timestamp.dll "Release\%NODE_MSIOUTPUT%.msi"
 if errorlevel 1 echo Failed to sign msi&goto exit
 
 :run
