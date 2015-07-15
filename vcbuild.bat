@@ -213,9 +213,9 @@ if errorlevel 1 echo Failed to sign exe&goto exit
 @rem Save a copy of .exe/.lib for release
 if not defined save_release goto licensertf
 
-robocopy "%~dp0%config%" "%~dp0%config%\%target_arch%" node.exe /NJH /NFL /NDL /NP
+robocopy "%~dp0%config%" "%~dp0%config%\%target_arch%" node.exe node.pdb
 if errorlevel 8 echo Failed to save exe&goto exit
-robocopy "%~dp0%config%" "%~dp0%config%\sdk\%target_arch%" node.lib /NJH /NFL /NDL /NP
+robocopy "%~dp0%config%" "%~dp0%config%\sdk\%target_arch%" node.lib
 if errorlevel 8 echo Failed to save lib&goto exit
 
 :licensertf
