@@ -355,4 +355,6 @@ class JsArguments {
 // create and set the exception on the context
 void SetOutOfMemoryErrorIfExist(_In_ JsErrorCode errorCode);
 
+// Clean up internal Chakra state by cleanly disposing at least one context
+void ExitCleanup();
 }  // namespace jsrt
