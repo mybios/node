@@ -15,6 +15,7 @@ created a V8 API shim on top of the Chakra runtime hosting API ([JSRT]
 implemented most essential V8 APIs so that the underlying JavaScript engine
 change is transparent to Node.js and other native addon modules written for V8.
 All we need is to rebuild node.exe and native addon modules with Chakra.
+It is also possible to build node compatible with the Universal Windows Platform (UWP).
 
 <a name="windows_with_chakra"></a>
 ### How to build (with Chakra on Windows)
@@ -32,6 +33,12 @@ To build node.exe:
 vcbuild chakra nosign [x86|x64|arm]
 ```
 
+To build node.dll for the [Universal Windows Platform wrapper](https://github.com/ms-iot/node-uwp-wrapper):
+
+```sh
+vcbuild chakra nosign uwp-dll [x86|x64|arm]
+```
+
 <a name="build_native_addon_modules_with_chakra"></a>
 ### How to build and install native addon modules
 
@@ -46,6 +53,12 @@ To build a native addon module:
 
 ```sh
 node.exe [local_repo]\deps\npm\node_modules\node-gyp\bin\node-gyp.js rebuild --nodedir=[local_repo]
+```
+
+To build a native addon module for the [Universal Windows Platform wrapper](https://github.com/ms-iot/node-uwp-wrapper):
+
+```sh
+node.exe [local_repo]\deps\npm\node_modules\node-gyp\bin\node-gyp.js rebuild --nodedir=[local_repo] --node_win_onecore
 ```
 
 To install a native addon module:

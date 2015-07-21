@@ -336,6 +336,7 @@ uint64_t uv_get_total_memory(void) {
 }
 
 
+#ifndef WINONECORE
 int uv_parent_pid() {
   int parent_pid = -1;
   HANDLE handle;
@@ -357,6 +358,7 @@ int uv_parent_pid() {
   CloseHandle(handle);
   return parent_pid;
 }
+#endif
 
 
 char** uv_setup_args(int argc, char** argv) {
@@ -488,6 +490,10 @@ uint64_t uv__hrtime(double scale) {
   return (uint64_t) ((double) counter.QuadPart * hrtime_interval_ * scale);
 }
 
+#ifdef WINONECORE
+BOOL WINAPI K32GetProcessMemoryInfo(HANDLE Process, PPROCESS_MEMORY_COUNTERS ppsmemCounters, DWORD cb);
+#define GetProcessMemoryInfo K32GetProcessMemoryInfo
+#endif
 
 int uv_resident_set_memory(size_t* rss) {
   HANDLE current_process;
@@ -782,6 +788,7 @@ static int is_windows_version_or_greater(DWORD os_major,
                                          DWORD os_minor,
                                          WORD service_pack_major,
                                          WORD service_pack_minor) {
+#ifndef WINONECORE
   OSVERSIONINFOEX osvi;
   DWORDLONG condition_mask = 0;
   int op = VER_GREATER_EQUAL;
@@ -806,6 +813,18 @@ static int is_windows_version_or_greater(DWORD os_major,
     VER_MAJORVERSION | VER_MINORVERSION |
     VER_SERVICEPACKMAJOR | VER_SERVICEPACKMINOR,
     condition_mask);
+#else
+  OSVERSIONINFO info;
+  info.dwOSVersionInfoSize = sizeof(info);
+  if (GetVersionEx(&info)) {
+    if ((info.dwMajorVersion > os_major) ||
+       (info.dwMajorVersion == os_major && info.dwMinorVersion >= os_minor)) {
+      return 1;
+    } else {
+      return 0;
+    }
+  }
+#endif
 }
 
 

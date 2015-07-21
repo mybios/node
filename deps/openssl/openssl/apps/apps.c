@@ -2647,6 +2647,9 @@ unsigned char *next_protos_parse(unsigned short *outlen, const char *in)
 
 static int WIN32_rename(const char *from, const char *to)
 {
+#ifdef WINONECORE
+    return -1;
+#else
     TCHAR *tfrom = NULL, *tto;
     DWORD err;
     int ret = 0;
@@ -2693,6 +2696,7 @@ static int WIN32_rename(const char *from, const char *to)
     if (tfrom != NULL && tfrom != (TCHAR *)from)
         free(tfrom);
     return ret;
+#endif
 }
 #endif
 
