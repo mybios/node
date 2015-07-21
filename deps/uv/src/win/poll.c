@@ -406,6 +406,10 @@ static void uv__slow_poll_submit_poll_req(uv_loop_t* loop, uv_poll_t* handle) {
     return;
   }
 
+#ifdef WINONECORE
+  SET_REQ_ERROR(req, ERROR_NOT_SUPPORTED);
+  uv_insert_pending_req(loop, req);
+#else
   if (!QueueUserWorkItem(uv__slow_poll_thread_proc,
                          (void*) req,
                          WT_EXECUTELONGFUNCTION)) {
@@ -413,6 +417,7 @@ static void uv__slow_poll_submit_poll_req(uv_loop_t* loop, uv_poll_t* handle) {
     SET_REQ_ERROR(req, GetLastError());
     uv_insert_pending_req(loop, req);
   }
+#endif
 }
 
 

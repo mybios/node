@@ -110,16 +110,18 @@
             'src/win/winsock.c',
             'src/win/winsock.h',
           ],
-          'link_settings': {
-            'libraries': [
-              '-ladvapi32',
-              '-liphlpapi',
-              '-lpsapi',
-              '-lshell32',
-              '-luserenv',
-              '-lws2_32'
+          'conditions' : [
+          [ 'node_win_onecore=="false"', {
+            'link_settings': {
+              'libraries': [
+                '-ladvapi32',
+                '-liphlpapi',
+                '-lpsapi',
+                '-lshell32',
+                '-lws2_32'
             ],
           },
+          }]],
         }, { # Not Windows i.e. POSIX
           'cflags': [
             '-g',
@@ -273,6 +275,13 @@
         ['uv_library=="shared_library"', {
           'defines': [ 'BUILDING_UV_SHARED=1' ]
         }],
+        ['node_win_onecore=="true"', {
+          'defines': [ 'WINONECORE=1' ],
+        }],
+        ['node_uwp_dll=="true"', {
+          'defines': [ 'UWP_DLL=1', '_WIN32_WINNT=0x0603', ],
+		  'sources': [ 'src/win/uwp.cpp' ],
+        }],
       ]
     },
 
@@ -311,7 +320,6 @@
         'test/test-getnameinfo.c',
         'test/test-getsockname.c',
         'test/test-handle-fileno.c',
-        'test/test-homedir.c',
         'test/test-hrtime.c',
         'test/test-idle.c',
         'test/test-ip6-addr.c',
@@ -332,7 +340,6 @@
         'test/test-ping-pong.c',
         'test/test-pipe-bind-error.c',
         'test/test-pipe-connect-error.c',
-        'test/test-pipe-connect-prepare.c',
         'test/test-pipe-getsockname.c',
         'test/test-pipe-sendmsg.c',
         'test/test-pipe-server-close.c',

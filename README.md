@@ -14,6 +14,7 @@ created a V8 API shim on top of the Chakra runtime hosting API ([JSRT]
 implemented most essential V8 APIs so that the underlying JavaScript engine
 change is transparent to Node.js and other native addon modules written for V8.
 All we need is to rebuild node.exe and native addon modules with Chakra.
+It is also possible to build node compatible with the Universal Windows Platform (UWP).
 
 ### How to get started
 

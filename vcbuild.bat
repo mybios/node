@@ -43,6 +43,8 @@ set engine_arg=
 set openssl_no_asm=
 set sdk=
 set save_release=
+set winplat=
+set buildtype=
 
 :next-arg
 if "%1"=="" goto args-done
@@ -81,6 +83,7 @@ if /i "%1"=="v8"            set engine=v8&goto arg-ok
 if /i "%1"=="chakra"        set engine=chakra&goto arg-ok
 if /i "%1"=="openssl-no-asm" set openssl_no_asm=--openssl-no-asm&goto arg-ok
 if /i "%1"=="sdk"           set sdk=1&goto arg-ok
+if /i "%1"=="uwp-dll"           set target_type=uwp-dll&goto arg-ok
 
 echo Warning: ignoring invalid command line option `%1`.
 
@@ -120,6 +123,10 @@ if defined nosnapshot set nosnapshot_arg=--without-snapshot
 if defined noetw set noetw_arg=--without-etw& set noetw_msi_arg=/p:NoETW=1
 if defined noperfctr set noperfctr_arg=--without-perfctr& set noperfctr_msi_arg=/p:NoPerfCtr=1
 if not "%engine%"=="" set engine_arg=--engine="%engine%"
+if "%target_type%"=="uwp-dll" (
+  set target_type_arg=--uwp-dll
+  set winplat_arg=--win-onecore
+)
 
 if "%i18n_arg%"=="full-icu" set i18n_arg=--with-intl=full-icu
 if "%i18n_arg%"=="small-icu" set i18n_arg=--with-intl=small-icu
@@ -187,7 +194,7 @@ goto exit
 if defined noprojgen goto msbuild
 
 @rem Generate the VS project.
-python configure %download_arg% %i18n_arg% %debug_arg% %nosnapshot_arg% %noetw_arg% %noperfctr_arg% %engine_arg% %openssl_no_asm% --dest-cpu=%target_arch% --tag=%TAG%
+python configure %download_arg% %i18n_arg% %debug_arg% %nosnapshot_arg% %noetw_arg% %noperfctr_arg% %engine_arg% %openssl_no_asm% %winplat_arg% %target_type_arg% --dest-cpu=%target_arch% --tag=%TAG%
 if errorlevel 1 goto create-msvs-files-failed
 if not exist node.sln goto create-msvs-files-failed
 echo Project files generated.
@@ -206,8 +213,11 @@ if defined nosign goto save_release
 @rem Also skip signing if building msi with sdk
 if defined sdk if defined msi goto save_release
 
-signtool sign /a /d "Node.js" /t http://timestamp.globalsign.com/scripts/timestamp.dll Release\node.exe
-if errorlevel 1 echo Failed to sign exe&goto exit
+set releasebinaryname=node.exe
+if "%target_type%"=="uwp-dll" set releasebinaryname=node.dll
+
+signtool sign /a /d "Node.js" /t http://timestamp.globalsign.com/scripts/timestamp.dll Release\%releasebinaryname%
+if errorlevel 1 echo Failed to sign %releasebinaryname%&goto exit
 
 :save_release
 @rem Save a copy of .exe/.lib for release

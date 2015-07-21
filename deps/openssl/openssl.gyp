@@ -960,13 +960,15 @@
             }]
           ]
         }],
-        ['OS=="win"', {
+        ['OS=="win" and node_win_onecore=="false"', {
           'link_settings': {
             'libraries': [
               '-lgdi32.lib',
               '-luser32.lib',
             ]
           },
+        }],
+        ['OS=="win"', {
           'defines': [
             'DSO_WIN32',
           ],

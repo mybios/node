@@ -37,15 +37,22 @@
         'BUILDING_CHAKRASHIM=1',
         '_WIN32_WINNT=0x0A00',  # WIN10
       ],
-      'libraries': [
-        '-lchakrart.lib',
-        '-lole32.lib',
-        '-lversion.lib',
-      ],
       'conditions': [
         [ 'target_arch=="arm"', {
           'defines': [ '__arm__=1' ]
         }],
+        [ 'node_win_onecore=="true"', {
+          'libraries': [
+            '-lchakrart.lib',
+          ],
+        }],
+        [ 'node_win_onecore=="false"', {
+          'libraries': [
+            '-lchakrart.lib',
+            '-lole32.lib',
+            '-lversion.lib',
+          ],
+        }]
       ],
       'msvs_disabled_warnings': [4091],
     },

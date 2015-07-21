@@ -15,6 +15,8 @@
     'node_use_mdb%': 'false',
     'node_v8_options%': '',
     'node_engine%': 'v8',
+    'node_win_onecore%': 'false',
+    'node_uwp_dll%': 'false',
     'library_files': [
       'src/node.js',
       'lib/_debugger.js',
@@ -312,6 +314,12 @@
           'dependencies': [ 'deps/chakrashim/chakrashim.gyp:chakrashim' ],
         }],
 
+        [ 'node_uwp_dll=="true"', {
+          'type': 'loadable_module',
+          'defines': [ 'UWP_DLL=1' ],
+          'include_dirs': [ 'deps/logger/include'],
+        }],
+
         [ 'node_shared_zlib=="false"', {
           'dependencies': [ 'deps/zlib/zlib.gyp:zlib' ],
         }],
@@ -328,6 +336,10 @@
           'dependencies': [ 'deps/uv/uv.gyp:libuv' ],
         }],
 
+        [ 'node_uwp_dll=="true"', {
+          'dependencies': [ 'deps/logger/logger.gyp:logger' ],
+        }],
+
         [ 'OS=="win"', {
           'sources': [
             'src/res/node.rc',
@@ -337,8 +349,17 @@
             # we need to use node's preferred "win32" rather than gyp's preferred "win"
             'PLATFORM="win32"',
             '_UNICODE=1',
+          ],          
+          'conditions' : [
+            [ 'node_win_onecore=="false"', {
+              'libraries': [ '-lpsapi.lib' ],
+            }],
+            [ 'node_win_onecore=="true"', {
+              'sources': [
+                'tools/win/patch/stubs.cc' 
+              ],
+            }],
           ],
-          'libraries': [ '-lpsapi.lib' ]
         }, { # POSIX
           'defines': [ '__POSIX__' ],
         }],

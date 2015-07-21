@@ -61,6 +61,10 @@
 #include "v8.h"  // NOLINT(build/include_order)
 #include "node_version.h"  // NODE_MODULE_VERSION
 
+#ifdef UWP_DLL
+#include "logger_wrap.h"
+#endif
+
 #define NODE_DEPRECATED(msg, fn) V8_DEPRECATED(msg, fn)
 
 // Forward-declare libuv loop
@@ -173,6 +177,9 @@ namespace node {
 NODE_EXTERN extern bool no_deprecation;
 
 NODE_EXTERN int Start(int argc, char *argv[]);
+#ifdef UWP_DLL
+NODE_EXTERN int Start(int argc, char *argv[], const logger::ILogger* logger);
+#endif
 NODE_EXTERN void Init(int* argc,
                       const char** argv,
                       int* exec_argc,
