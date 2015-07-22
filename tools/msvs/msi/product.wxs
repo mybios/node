@@ -61,6 +61,7 @@
       <ComponentRef Id="NodeExecutable"/>
       <ComponentRef Id="NodeVarsScript"/>
       <ComponentRef Id="NodeStartMenuAndRegistryEntries"/>
+      <ComponentRef Id="AppData" />
       <ComponentGroupRef Id="Product.Generated"/>
 
       <?if $(var.NodeUseSdk) != "" ?>
@@ -94,6 +95,7 @@
       <ComponentRef Id="NpmCmdScript"/>
       <ComponentRef Id="NpmBashScript"/>
       <ComponentRef Id="NpmConfigurationFile"/>
+      <ComponentRef Id="AppData" />
       <ComponentGroupRef Id="NpmSourceFiles"/>
     </Feature>
 
@@ -205,6 +207,16 @@
         <Directory Id="NpmFolder" Name="npm">
           <Component Id="NpmConfigurationFile">
             <File Id="npm.rc" KeyPath="yes" Source="$(var.RepoDir)\tools\msvs\npm\npmrc"/>
+          </Component>
+        </Directory>
+      </Directory>
+
+      <Directory Id="AppDataFolder">
+        <Directory Id="AppDataDir" Name="npm">
+          <Component Id="AppData" Guid="D3B35D0E-D0F9-4D11-A773-D4608E90E1D1">
+            <CreateFolder />
+            <RemoveFolder Id="AppDataDir" On="uninstall" />
+            <RegistryValue Root="HKCU" Key="$(var.RegistryKeyPath)\Components" Type="string" Value="" />
           </Component>
         </Directory>
       </Directory>
