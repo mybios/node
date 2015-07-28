@@ -94,7 +94,7 @@ void uv_disable_stdio_inheritance(void) {
     uv__stdio_noinherit(si.lpReserved2);
 }
 
-
+#ifndef WINONECORE
 static int uv__create_stdio_pipe_pair(uv_loop_t* loop,
     uv_pipe_t* server_pipe, HANDLE* child_pipe_ptr, unsigned int flags) {
   char pipe_name[64];
@@ -188,6 +188,7 @@ static int uv__create_stdio_pipe_pair(uv_loop_t* loop,
 
   return err;
 }
+#endif
 
 
 static int uv__duplicate_handle(uv_loop_t* loop, HANDLE handle, HANDLE* dup) {
@@ -322,6 +323,7 @@ int uv__stdio_create(uv_loop_t* loop,
         }
         break;
 
+#ifndef WINONECORE
       case UV_CREATE_PIPE: {
         /* Create a pair of two connected pipe ends; one end is turned into */
         /* an uv_pipe_t for use by the parent. The other one is given to */
@@ -346,6 +348,7 @@ int uv__stdio_create(uv_loop_t* loop,
         CHILD_STDIO_CRT_FLAGS(buffer, i) = FOPEN | FPIPE;
         break;
       }
+#endif
 
       case UV_INHERIT_FD: {
         /* Inherit a raw FD. */

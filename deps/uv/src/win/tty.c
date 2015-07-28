@@ -268,7 +268,9 @@ static void CALLBACK uv_tty_post_raw_read(void* data, BOOLEAN didTimeout) {
   handle = (uv_tty_t*) req->data;
   loop = handle->loop;
 
+#ifndef WINONECORE
   UnregisterWait(handle->tty.rd.read_raw_wait);
+#endif
   handle->tty.rd.read_raw_wait = NULL;
 
   SET_REQ_SUCCESS(req);
@@ -289,13 +291,17 @@ static void uv_tty_queue_read_raw(uv_loop_t* loop, uv_tty_t* handle) {
 
   req = &handle->read_req;
   memset(&req->u.io.overlapped, 0, sizeof(req->u.io.overlapped));
-
+#ifdef WINONECORE
+  r = 0;
+  SetLastError(ERROR_NOT_SUPPORTED);
+#else
   r = RegisterWaitForSingleObject(&handle->tty.rd.read_raw_wait,
                                   handle->handle,
                                   uv_tty_post_raw_read,
                                   (void*) req,
                                   INFINITE,
                                   WT_EXECUTEINWAITTHREAD | WT_EXECUTEONLYONCE);
+#endif
   if (!r) {
     handle->tty.rd.read_raw_wait = NULL;
     SET_REQ_ERROR(req, GetLastError());
@@ -398,9 +404,14 @@ static void uv_tty_queue_read_line(uv_loop_t* loop, uv_tty_t* handle) {
     }
   }
 
+#ifdef WINONECORE
+  r = 0;
+  SetLastError(ERROR_NOT_SUPPORTED);
+#else
   r = QueueUserWorkItem(uv_tty_line_read_thread,
                         (void*) req,
                         WT_EXECUTELONGFUNCTION);
+#endif
   if (!r) {
     SET_REQ_ERROR(req, GetLastError());
     uv_insert_pending_req(loop, (uv_req_t*)req);

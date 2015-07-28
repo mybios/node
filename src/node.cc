@@ -2710,6 +2710,14 @@ void SetupProcessObject(Environment* env,
     READONLY_PROPERTY(process, "traceDeprecation", True(env->isolate()));
   }
 
+#ifdef UWP_DLL
+  READONLY_PROPERTY(process, "hasConsole", False(env->isolate()));
+  READONLY_PROPERTY(process, "uwpDLL", True(env->isolate()));
+#else
+  READONLY_PROPERTY(process, "hasConsole", True(env->isolate()));
+  READONLY_PROPERTY(process, "uwpDLL", False(env->isolate()));
+#endif
+
   size_t exec_path_len = 2 * PATH_MAX;
   char* exec_path = new char[exec_path_len];
   Local<String> exec_path_value;
@@ -3008,10 +3016,12 @@ static void ParseArgs(int* argc,
     } else if (strcmp(arg, "--version") == 0 || strcmp(arg, "-v") == 0) {
       printf("%s\n", NODE_VERSION);
       exit(0);
+#ifndef HAVE_OPENSSL
     } else if (strcmp(arg, "--enable-ssl2") == 0) {
       SSL2_ENABLE = true;
     } else if (strcmp(arg, "--enable-ssl3") == 0) {
       SSL3_ENABLE = true;
+#endif
     } else if (strcmp(arg, "--help") == 0 || strcmp(arg, "-h") == 0) {
       PrintHelp();
       exit(0);
@@ -3757,6 +3767,13 @@ int Start(int argc, char** argv) {
 
   return code;
 }
+
+#ifdef UWP_DLL
+int _cdecl Start(int argc, char *argv[], const logger::ILogger* logger) {
+  node::logger::SetLogger(logger);
+  return Start(argc, argv);
+}
+#endif
 
 
 }  // namespace node

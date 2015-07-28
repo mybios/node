@@ -4729,3 +4729,6 @@ extern sWakeConditionVariable pWakeConditionVariable;
 extern sCancelSynchronousIo pCancelSynchronousIo;
 
 #endif /* UV_WIN_WINAPI_H_ */
+
+/* WRL (Windows Runtime C++ Template Library) wrapper functions required by Node.js UWP. */
+HRESULT GetLocalFolderPath(WCHAR* path);

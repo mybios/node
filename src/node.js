@@ -45,6 +45,8 @@
     startup.globalVariables();
     startup.globalTimeouts();
     startup.globalConsole();
+    if (!process.hasConsole)
+        overrideConsoleWithNativeLogger();
 
     startup.processAssert();
     startup.processConfig();
@@ -209,10 +211,104 @@
     };
   };
 
-  startup.globalConsole = function() {
-    global.__defineGetter__('console', function() {
-      return NativeModule.require('console');
+  startup.globalConsole = function () {
+    var emptyConsole = {
+      log: function () { },
+      debug: function () { },
+      info: function () { },
+      warn: function () { },
+      warning: function () { },
+      error: function () { },
+      dir: function () { },
+      time: function () { },
+      timeEnd: function () { },
+      trace: function () { }
+    };
+
+    global.__defineGetter__('console', function () {
+      if (!process.hasConsole) {
+        return emptyConsole;
+      } else {
+        return NativeModule.require('console');
+      }
     });
+  };
+
+  // override console with a logger to allow Node.js UWP to redirect output to file
+  function overrideConsoleWithNativeLogger() {
+    var util = NativeModule.require('util');
+    var logger = process.binding('logger_wrap').logger;
+
+    // override debug, log, info, warn, warning, and error
+    var methods = {
+      'debug': logger.logLevels.verbose,
+      'log': logger.logLevels.verbose,
+      'info': logger.logLevels.info,
+      'warn': logger.logLevels.warn,
+      'warning': logger.logLevels.warn,
+      'error': logger.logLevels.error
+     };
+
+     for (var method in methods) {
+       // whenever a console method will be called, we will call the logger with the appropriate log level
+       console[method] = (function (methodName, i) {
+         var logLevel = i;
+         var originalMethod = console[methodName];
+
+         return function () {
+           // Write to logger
+           logger.log(logLevel, util.format.apply(this, arguments));
+           // Write to stdout incase it was overridden
+           process.stdout.write(util.format.apply(this, arguments) + '\n'); 
+           originalMethod.apply(this, arguments);
+         }
+       }).apply(this, [method, methods[method]]);
+    }       
+
+    // override dir
+    console['dir'] = function (object, options) {
+      // Write to logger
+      logger.log(logger.logLevels.verbose, util.inspect(object, util._extend({ customInspect: false }, options)) + '\n');
+      // Write to stdout incase it was overridden
+      process.stdout.write(util.inspect(object, util._extend({ customInspect: false }, options)) + '\n'); 
+    };
+
+    // override time and timeEnd
+    var prop = {
+      writable: true,
+      enumerable: false,
+      configurable: true
+    };
+    prop.value = Object.create(null);
+    Object.defineProperty(console, '_times', prop);
+
+    console['time'] = function (label) {
+      console._times[label] = Date.now();
+    };
+
+    console['timeEnd'] = function (label) {
+      var time = console._times[label];
+      if (!time) {
+        throw new Error('No such label: ' + label);
+      }
+      var duration = Date.now() - time;
+      // Write to logger
+      logger.log(logger.logLevels.verbose, util.format('%s: %dms', label, duration));
+      // Write to stdout incase it was overridden
+      process.stdout.write(util.format('%s: %dms', label, duration) + '\n'); 
+    };
+
+    // override trace
+    console['trace'] = function trace() {
+      var err = new Error;
+      err.name = 'Trace';
+      err.message = util.format.apply(this, arguments);
+      Error.captureStackTrace(err, trace);
+      // Write to logger
+      logger.log(logger.logLevels.warn, err.stack);
+      // Write to stdout incase it was overridden
+      process.stdout.write(err.stack + '\n'); 
+    };
   };
 
 
@@ -493,9 +589,39 @@
 
     return stream;
   }
+  
+  // Empty stream for stdout and stderr in Node.js UWP 
+  function createEmptyWritableStdioStream() {
+    var stream = NativeModule.require('stream');
+    var util = NativeModule.require('util');
+    function EmptyWritableStdioStream() {
+      var prop = {
+        writable: true,
+        enumerable: false,
+        configurable: true
+      };
+      prop.value = 0;
+      Object.defineProperty(this, 'fd', prop);
+      stream.Writable.call(this);
+    };
+    util.inherits(EmptyWritableStdioStream, stream.Writable);
+    EmptyWritableStdioStream.prototype._write = function (chunk, encoding, done) { }
+    return new EmptyWritableStdioStream();
+  }
 
   startup.processStdio = function() {
     var stdin, stdout, stderr;
+
+    if (!process.hasConsole) {
+      stdin = {
+        id: '__mock_stdin',
+        write: function () { },
+        read: function () { },
+        pipe: function () { }
+      }
+
+      stdout = stderr = createEmptyWritableStdioStream();
+    }
 
     process.__defineGetter__('stdout', function() {
       if (stdout) return stdout;
