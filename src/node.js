@@ -595,31 +595,30 @@
     var stream = NativeModule.require('stream');
     var util = NativeModule.require('util');
     function EmptyWritableStdioStream() {
-      var prop = {
-        writable: true,
-        enumerable: false,
-        configurable: true
-      };
-      prop.value = 0;
-      Object.defineProperty(this, 'fd', prop);
       stream.Writable.call(this);
     };
     util.inherits(EmptyWritableStdioStream, stream.Writable);
-    EmptyWritableStdioStream.prototype._write = function (chunk, encoding, done) { }
+    EmptyWritableStdioStream.prototype._write = function () { }
     return new EmptyWritableStdioStream();
+  }
+
+  // Empty stream for stdin in Node.js UWP 
+  function createEmptyReadableStdioStream() {
+    var stream = NativeModule.require('stream');
+    var util = NativeModule.require('util');
+    function EmptyReadableStdioStream() {
+      stream.Readable.call(this);
+    };
+    util.inherits(EmptyReadableStdioStream, stream.Readable);
+    EmptyReadableStdioStream.prototype._read = function () { }
+    return new EmptyReadableStdioStream();
   }
 
   startup.processStdio = function() {
     var stdin, stdout, stderr;
 
     if (!process.hasConsole) {
-      stdin = {
-        id: '__mock_stdin',
-        write: function () { },
-        read: function () { },
-        pipe: function () { }
-      }
-
+      stdin = createEmptyReadableStdioStream();
       stdout = stderr = createEmptyWritableStdioStream();
     }
 
