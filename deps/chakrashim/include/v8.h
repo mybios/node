@@ -213,6 +213,7 @@ class Local : public Handle<T> {
   Local();
   template <class S>
   Local(S *that);
+  Local(JsValueRef that);
   template <class S>
   Local(Local<S> that);
   template <class S>
@@ -221,6 +222,8 @@ class Local : public Handle<T> {
   Local<S> As();
   template <class S>
   static Local<T> Cast(Local<S> that);
+  static Local<T> New(JsValueRef that);
+  static Local<T> New(T* that);
   static Local<T> New(Handle<T> that);
   static Local<T> New(Isolate* isolate, Handle<T> that);
   static Local<T> New(Isolate* isolate, const Persistent<T>& that);
@@ -527,8 +530,12 @@ class EXPORT Primitive : public Value {
 class EXPORT Boolean : public Primitive {
  public:
   bool Value() const;
-
   static Handle<Boolean> New(Isolate* isolate, bool value);
+
+ private:
+  friend class BooleanObject;
+  template <class F> friend class ReturnValue;
+  static Local<Boolean> From(bool value);
 };
 
 class EXPORT String : public Primitive {
@@ -673,9 +680,13 @@ class EXPORT String : public Primitive {
 class EXPORT Number : public Primitive {
  public:
   double Value() const;
-
   static Local<Number> New(Isolate* isolate, double value);
   static Number *Cast(v8::Value *obj);
+
+ private:
+  friend class Integer;
+  template <class F> friend class ReturnValue;
+  static Local<Number> From(double value);
 };
 
 class EXPORT Integer : public Number {
@@ -685,6 +696,12 @@ class EXPORT Integer : public Number {
   static Integer *Cast(v8::Value *obj);
 
   int64_t Value() const;
+
+ private:
+  friend class Utils;
+  template <class F> friend class ReturnValue;
+  static Local<Integer> From(int32_t value);
+  static Local<Integer> From(uint32_t value);
 };
 
 class EXPORT Int32 : public Integer {
@@ -839,16 +856,14 @@ class ReturnValue {
       chakrashim::MarshalJsValueRefToContext(*handle, *_context));
   }
   // Fast primitive setters
-  void Set(bool value) { Set(Boolean::New(Isolate::GetCurrent(), value)); }
-  void Set(double i) { Set(Number::New(Isolate::GetCurrent(), i)); }
-  void Set(int32_t i) { Set(Integer::New(Isolate::GetCurrent(), i)); }
-  void Set(uint32_t i) {
-    Set(Integer::NewFromUnsigned(Isolate::GetCurrent(), i));
-  }
+  void Set(bool value) { Set(Boolean::From(value)); }
+  void Set(double value) { Set(Number::From(value)); }
+  void Set(int32_t value) { Set(Integer::From(value)); }
+  void Set(uint32_t value) { Set(Integer::From(value)); }
   // Fast JS primitive setters
-  void SetNull() { Set(Null(Isolate::GetCurrent())); }
-  void SetUndefined() { Set(Undefined(Isolate::GetCurrent())); }
-  void SetEmptyString() { Set(String::New(L"", 0)); }
+  void SetNull() { Set(Null(nullptr)); }
+  void SetUndefined() { Set(Undefined(nullptr)); }
+  void SetEmptyString() { Set(String::Empty(nullptr)); }
   // Convenience getter for Isolate
   Isolate* GetIsolate() { return Isolate::GetCurrent(); }
 
@@ -1363,6 +1378,11 @@ Local<T>::Local(S *that)
 }
 
 template <class T>
+Local<T>::Local(JsValueRef that)
+    : Handle<T>(static_cast<T*>(that)){
+}
+
+template <class T>
 template <class S>
 Local<T>::Local(Local<S> that)
     : Handle<T>(*that) {
@@ -1387,20 +1407,30 @@ Local<T> Local<T>::Cast(Local<S> that) {
 }
 
 template <class T>
-Local<T> Local<T>::New(Handle<T> that) {
-  if (!HandleScope::GetCurrent()->AddLocal(*that)) {
+Local<T> Local<T>::New(JsValueRef that) {
+  return New(static_cast<T*>(that));
+}
+
+template <class T>
+Local<T> Local<T>::New(T* that) {
+  if (!HandleScope::GetCurrent()->AddLocal(that)) {
     return Local<T>();
   }
-  return Local<T>(*that);
+  return Local<T>(that);
 }
 
 // Context are not javascript values, so we need to specialize them
 template <>
-inline Local<Context> Local<Context>::New(Handle<Context> that) {
-  if (!HandleScope::GetCurrent()->AddLocalContext(*that)) {
+inline Local<Context> Local<Context>::New(Context* that) {
+  if (!HandleScope::GetCurrent()->AddLocalContext(that)) {
     return Local<Context>();
   }
-  return Local<Context>(*that);
+  return Local<Context>(that);
+}
+
+template <class T>
+Local<T> Local<T>::New(Handle<T> that) {
+  return New(*that);
 }
 
 template <class T>

@@ -513,13 +513,13 @@ JsValueRef GetPropertiesHandler(_In_ JsValueRef* arguments,
     }
   }
 
-  JsValueRef conatenatedArray;
+  JsValueRef concatenatedArray;
   if (ConcatArray(indexedProperties,
-                  namedProperties, &conatenatedArray) != JsNoError) {
+                  namedProperties, &concatenatedArray) != JsNoError) {
     return GetUndefined();
   }
 
-  return conatenatedArray;
+  return concatenatedArray;
 }
 
 JsValueRef GetPropertiesEnumeratorHandler(

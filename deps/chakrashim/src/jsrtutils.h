@@ -283,10 +283,6 @@ JsErrorCode GetIndexedProperty(_In_ JsValueRef object,
 bool IsOfGlobalType(_In_ JsValueRef objectRef,
                     _In_ const wchar_t *typeName);
 
-// used for debugging
-JsErrorCode StringifyObject(_In_ JsValueRef object,
-                            _Out_ const wchar_t **stringifiedObject);
-
 void Unimplemented(const char * message);
 
 void Fatal(const char * format, ...);
@@ -321,6 +317,65 @@ void SetOutOfMemoryErrorIfExist(_In_ JsErrorCode errorCode);
 // Clean up internal Chakra state by cleanly disposing at least one
 // context
 void ExitCleanup();
+
+
+// Helpers for JsCallFunction/JsConstructObject with undefined as arg0
+
+template <class T>
+JsErrorCode CallFunction(const T& api,
+                         JsValueRef func,
+                         JsValueRef* result) {
+  JsValueRef args[] = { jsrt::GetUndefined() };
+  return api(func, args, _countof(args), result);
+}
+
+template <class T>
+JsErrorCode CallFunction(const T& api,
+                         JsValueRef func, JsValueRef arg1,
+                         JsValueRef* result) {
+  JsValueRef args[] = { jsrt::GetUndefined(), arg1 };
+  return api(func, args, _countof(args), result);
+}
+
+template <class T>
+JsErrorCode CallFunction(const T& api,
+                         JsValueRef func, JsValueRef arg1, JsValueRef arg2,
+                         JsValueRef* result) {
+  JsValueRef args[] = { jsrt::GetUndefined(), arg1, arg2 };
+  return api(func, args, _countof(args), result);
+}
+
+inline JsErrorCode CallFunction(JsValueRef func,
+                                JsValueRef* result) {
+  return CallFunction(JsCallFunction, func, result);
+}
+
+inline JsErrorCode CallFunction(JsValueRef func, JsValueRef arg1,
+                                JsValueRef* result) {
+  return CallFunction(JsCallFunction, func, arg1, result);
+}
+
+inline JsErrorCode CallFunction(JsValueRef func,
+                                JsValueRef arg1, JsValueRef arg2,
+                                JsValueRef* result) {
+  return CallFunction(JsCallFunction, func, arg1, arg2, result);
+}
+
+inline JsErrorCode ConstructObject(JsValueRef func,
+                                   JsValueRef* result) {
+  return CallFunction(JsConstructObject, func, result);
+}
+
+inline JsErrorCode ConstructObject(JsValueRef func, JsValueRef arg1,
+                                   JsValueRef* result) {
+  return CallFunction(JsConstructObject, func, arg1, result);
+}
+
+inline JsErrorCode ConstructObject(JsValueRef func,
+                                   JsValueRef arg1, JsValueRef arg2,
+                                   JsValueRef* result) {
+  return CallFunction(JsConstructObject, func, arg1, arg2, result);
+}
 
 
 template <bool LIKELY,

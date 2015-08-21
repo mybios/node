@@ -104,7 +104,7 @@ Local<Value> Script::Run() {
   }
 
   JsValueRef result;
-  JsErrorCode errorCode = JsCallFunction(scriptFunction, nullptr, 0, &result);
+  JsErrorCode errorCode = jsrt::CallFunction(scriptFunction, &result);
 
   jsrt::SetOutOfMemoryErrorIfExist(errorCode);
 

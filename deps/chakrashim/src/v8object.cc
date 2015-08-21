@@ -748,7 +748,7 @@ Local<Object> Object::Clone() {
   }
 
   JsValueRef obj;
-  if (JsCallFunction(constructor, nullptr, 0, &obj) != JsNoError) {
+  if (jsrt::ConstructObject(constructor, &obj) != JsNoError) {
     return Local<Object>();
   }
 
