@@ -23,6 +23,7 @@
 
 #pragma once
 #include "v8.h"
+#include "jsrtutils.h"
 #include <assert.h>
 
 namespace v8 {

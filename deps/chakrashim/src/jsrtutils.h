@@ -283,10 +283,6 @@ JsErrorCode GetIndexedProperty(_In_ JsValueRef object,
 bool IsOfGlobalType(_In_ JsValueRef objectRef,
                     _In_ const wchar_t *typeName);
 
-// used for debugging
-JsErrorCode StringifyObject(_In_ JsValueRef object,
-                            _Out_ const wchar_t **stringifiedObject);
-
 void Unimplemented(const char * message);
 
 void Fatal(const char * format, ...);

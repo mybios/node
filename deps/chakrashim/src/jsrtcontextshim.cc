@@ -18,7 +18,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#include "jsrtutils.h"
 #include "v8chakra.h"
 #include "chakra_natives.h"
 #include <algorithm>
@@ -449,13 +448,13 @@ bool ContextShim::ExecuteChakraShimJS() {
     return false;
   }
   JsValueRef initFunction;
-  if (JsCallFunction(getInitFunction, nullptr, 0, &initFunction) != JsNoError) {
+  if (CallFunction(getInitFunction, &initFunction) != JsNoError) {
     return false;
   }
   JsValueRef result;
   JsValueRef arguments[] = { this->keepAliveObject };
-  return JsCallFunction(
-    initFunction, arguments, _countof(arguments), &result) == JsNoError;
+  return JsCallFunction(initFunction, arguments, _countof(arguments),
+                        &result) == JsNoError;
 }
 
 bool ContextShim::RegisterCrossContextObject(JsValueRef fakeTarget,
@@ -797,8 +796,8 @@ JsValueRef CALLBACK InternalMethods::ObjectPrototypeToStringShim(
 
   JsValueRef function = callbackState;
   JsValueRef result;
-  if (JsCallFunction(function,
-                     arguments, argumentCount, &result) != JsNoError) {
+  if (JsCallFunction(function, arguments, argumentCount,
+                     &result) != JsNoError) {
     return JS_INVALID_REFERENCE;
   }
   return result;

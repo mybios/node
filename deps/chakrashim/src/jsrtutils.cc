@@ -156,7 +156,8 @@ JsErrorCode CallGetter(
     _In_ JsValueRef ref,
     _In_ const wchar_t *propertyName,
     _Out_ JsValueRef* result) {
-  return CallProperty(ref, propertyName, nullptr, 0, result);
+  JsValueRef args[] = { ref };
+  return CallProperty(ref, propertyName, args, _countof(args), result);
 }
 
 JsErrorCode CallGetter(
@@ -307,9 +308,12 @@ JsErrorCode CloneObject(_In_ JsValueRef source,
 JsErrorCode HasOwnProperty(_In_ JsValueRef object,
                            _In_ JsValueRef prop,
                            _Out_ JsValueRef *result) {
+  JsValueRef hasOwnPropertyFunction =
+    ContextShim::GetCurrent()->GetGlobalPrototypeFunction(
+      ContextShim::GlobalPrototypeFunction::Object_hasOwnProperty);
+
   JsValueRef args[] = { object, prop };
-  return jsrt::CallProperty(
-      object, L"hasOwnProperty", args, _countof(args), result);
+  return JsCallFunction(hasOwnPropertyFunction, args, _countof(args), result);
 }
 
 JsErrorCode IsValueInArray(
@@ -459,7 +463,10 @@ JsErrorCode ConcatArray(_In_ JsValueRef first,
                         _Out_ JsValueRef *result) {
   JsValueRef args[] = { first, second };
 
-  return CallProperty(first, L"concat", args, _countof(args), result);
+  return CallProperty(first,
+                      IsolateShim::GetCurrent()->GetCachedPropertyIdRef(
+                        CachedPropertyIdRef::concat),
+                      args, _countof(args), result);
 }
 
 JsErrorCode CreateEnumerationIterator(_In_ JsValueRef enumeration,
@@ -862,28 +869,6 @@ bool IsOfGlobalType(_In_ JsValueRef ref, _In_ const wchar_t *typeName) {
   return InstanceOfGlobalType(ref, typeName, &result) == JsNoError && result;
 }
 
-// used for debugging
-
-JsErrorCode StringifyObject(_In_ JsValueRef object,
-                            _Out_ const wchar_t **stringifiedObject) {
-  JsValueRef jsonObj = JS_INVALID_REFERENCE;
-  JsErrorCode error;
-  error = GetPropertyOfGlobal(L"JSON", &jsonObj);
-  if (error != JsNoError) {
-    return error;
-  }
-
-  JsValueRef args[] = { jsonObj, object };
-  JsValueRef jsonResult;
-  error = jsrt::CallProperty(jsonObj,
-                             L"stringify", args, _countof(args), &jsonResult);
-  if (error != JsNoError) {
-    return error;
-  }
-
-  size_t stringLength;
-  return JsStringToPointer(jsonResult, stringifiedObject, &stringLength);
-}
 
 void Unimplemented(const char * message) {
   fprintf(stderr, "FATAL ERROR: '%s' unimplemented", message);
