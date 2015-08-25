@@ -19,8 +19,8 @@
 // IN THE SOFTWARE.
 
 // stubs.cc
-// Included in addon.gypi and node.gyp to enable building with onecore.lib 
-// It provides a workaround for linker errors.
+// Included in addon.gypi to enable building an Addon built with onecore.lib 
+// (workaround for linker errors).
 
 #include <Windows.h>
 #include <assert.h>

@@ -968,6 +968,11 @@
             ]
           },
         }],
+        ['node_uwp_dll=="true"', {
+          'defines': [
+            'UWP',
+          ],
+        }],
         ['OS=="win"', {
           'defines': [
             'DSO_WIN32',

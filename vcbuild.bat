@@ -41,8 +41,6 @@ set build_release=
 set engine=v8
 set engine_arg=
 set openssl_no_asm=
-set sdk=
-set save_release=
 set winplat=
 set buildtype=
 
@@ -82,7 +80,6 @@ if /i "%1"=="build-release" set build_release=1&goto arg-ok
 if /i "%1"=="v8"            set engine=v8&goto arg-ok
 if /i "%1"=="chakra"        set engine=chakra&goto arg-ok
 if /i "%1"=="openssl-no-asm" set openssl_no_asm=--openssl-no-asm&goto arg-ok
-if /i "%1"=="sdk"           set sdk=1&goto arg-ok
 if /i "%1"=="uwp-dll"           set target_type=uwp-dll&goto arg-ok
 
 echo Warning: ignoring invalid command line option `%1`.
@@ -94,7 +91,7 @@ goto next-arg
 
 :args-done
 if "%target_arch%"=="arm" (
-    if not "%openssl_no_asm%"=="--openssl-no-asm" goto arm-requires-openssl-no-asm
+  if not "%openssl_no_asm%"=="--openssl-no-asm" goto arm-requires-openssl-no-asm
 )
 if defined upload goto upload
 if defined jslint goto jslint
@@ -216,17 +213,11 @@ if defined sdk if defined msi goto save_release
 set releasebinaryname=node.exe
 if "%target_type%"=="uwp-dll" set releasebinaryname=node.dll
 
+set releasebinaryname=node.exe
+if "%target_type%"=="uwp-dll" set releasebinaryname=node.dll
+
 signtool sign /a /d "Node.js" /t http://timestamp.globalsign.com/scripts/timestamp.dll Release\%releasebinaryname%
 if errorlevel 1 echo Failed to sign %releasebinaryname%&goto exit
-
-:save_release
-@rem Save a copy of .exe/.lib for release
-if not defined save_release goto licensertf
-
-robocopy "%~dp0%config%" "%~dp0%config%\%target_arch%" node.exe node.pdb
-if errorlevel 8 echo Failed to save exe&goto exit
-robocopy "%~dp0%config%" "%~dp0%config%\sdk\%target_arch%" node.lib
-if errorlevel 8 echo Failed to save lib&goto exit
 
 :licensertf
 @rem Skip license.rtf generation if not requested.
