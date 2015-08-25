@@ -351,9 +351,15 @@
             '_UNICODE=1',
           ],          
           'conditions' : [
-          [ 'node_win_onecore=="false"', {
-            'libraries': [ '-lpsapi.lib' ],
-          }]],
+            [ 'node_win_onecore=="false"', {
+              'libraries': [ '-lpsapi.lib' ],
+            }],
+            ['node_win_onecore=="true"', {
+              'sources': [
+                'tools/win/patch/stubs.cc',
+              ],
+            }],
+          ],
         }, { # POSIX
           'defines': [ '__POSIX__' ],
         }],
