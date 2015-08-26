@@ -39,17 +39,12 @@ inline void* External::Unwrap(Handle<v8::Value> obj) {
 
 Local<External> External::New(Isolate* isolate, void* value) {
   JsValueRef externalRef;
-
   if (JsCreateExternalObject(value, nullptr, &externalRef) != JsNoError) {
     return Local<External>();
   }
 
   IsolateShim* iso = IsolateShim::FromIsolate(isolate);
   JsValueRef trueRef = iso->GetCurrentContextShim()->GetTrue();
-  if (JsGetTrueValue(&trueRef) != JsNoError) {
-    return Local<External>();
-  }
-
   if (jsrt::DefineProperty(externalRef,
                            iso->GetCachedSymbolPropertyIdRef(
                              jsrt::CachedSymbolPropertyIdRef::__isexternal__),
@@ -62,7 +57,7 @@ Local<External> External::New(Isolate* isolate, void* value) {
     return Local<External>();
   }
 
-  return Local<External>::New(static_cast<External*>(externalRef));
+  return Local<External>::New(externalRef);
 }
 
 bool External::IsExternal(const v8::Value* value) {
@@ -80,10 +75,7 @@ bool External::IsExternal(const v8::Value* value) {
 }
 
 External* External::Cast(v8::Value* obj) {
-  if (!obj->IsExternal()) {
-    return nullptr;
-  }
-
+  CHAKRA_ASSERT(obj->IsExternal());
   return static_cast<External*>(obj);
 }
 

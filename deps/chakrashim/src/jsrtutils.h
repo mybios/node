@@ -20,7 +20,6 @@
 
 #pragma once
 
-#include "jsrt.h"
 #include "v8.h"
 #include "jsrtproxyutils.h"
 #include "jsrtcontextshim.h"
@@ -57,108 +56,114 @@ namespace jsrt {
 
 JsErrorCode InitializePromise();
 
-JsErrorCode GetProperty(_In_ JsValueRef ref,
-                        _In_ JsValueRef propName,
-                        _Out_ JsValueRef *result);
+JsErrorCode GetProperty(JsValueRef ref,
+                        JsValueRef propName,
+                        JsValueRef *result);
 
-JsErrorCode GetProperty(_In_ JsValueRef ref,
-                        _In_ const wchar_t *propertyName,
-                        _Out_ JsValueRef *result);
+JsErrorCode GetProperty(JsValueRef ref,
+                        const wchar_t *propertyName,
+                        JsValueRef *result);
 
-JsErrorCode SetProperty(_In_ JsValueRef ref,
-                        _In_ JsValueRef propName,
-                        _In_ JsValueRef propValue);
+JsErrorCode GetProperty(JsValueRef ref,
+                        CachedPropertyIdRef cachedIdRef,
+                        JsValueRef *result);
 
-JsErrorCode SetProperty(_In_ JsValueRef ref,
-                        _In_ const wchar_t* propName,
-                        _In_ JsValueRef propValue);
+JsErrorCode GetProperty(JsValueRef ref,
+                        JsPropertyIdRef propId,
+                        int *intValue);
 
-JsErrorCode DeleteIndexedProperty(_In_ JsValueRef object,
-                                  _In_ int index);
+JsErrorCode SetProperty(JsValueRef ref,
+                        JsValueRef propName,
+                        JsValueRef propValue);
 
-JsErrorCode DeleteProperty(_In_ JsValueRef ref,
-                           _In_ JsValueRef propName,
-                           _Out_ JsValueRef* result);
+JsErrorCode SetProperty(JsValueRef ref,
+                        CachedPropertyIdRef cachedIdRef,
+                        JsValueRef propValue);
 
-JsErrorCode GetOwnPropertyDescriptor(_In_ JsValueRef ref,
-                                     _In_ JsValueRef prop,
-                                     _Out_ JsValueRef* result);
+JsErrorCode DeleteIndexedProperty(JsValueRef object,
+                                  int index);
 
-JsErrorCode IsValueInArray(_In_ JsValueRef arrayRef,
-                           _In_ JsValueRef valueRef,
-                           _Out_ bool* result);
+JsErrorCode DeleteProperty(JsValueRef ref,
+                           JsValueRef propName,
+                           JsValueRef* result);
+
+JsErrorCode GetOwnPropertyDescriptor(JsValueRef ref,
+                                     JsValueRef prop,
+                                     JsValueRef* result);
+
+JsErrorCode IsValueInArray(JsValueRef arrayRef,
+                           JsValueRef valueRef,
+                           bool* result);
 
 JsErrorCode IsValueInArray(
-  _In_ JsValueRef arrayRef,
-  _In_ JsValueRef valueRef,
-  _In_ std::function<JsErrorCode(JsValueRef, JsValueRef, bool*)> comperator,
-  _Out_ bool* result);
+  JsValueRef arrayRef,
+  JsValueRef valueRef,
+  std::function<JsErrorCode(JsValueRef, JsValueRef, bool*)> comperator,
+  bool* result);
 
-JsErrorCode IsCaseInsensitiveStringValueInArray(_In_ JsValueRef arrayRef,
-                                                _In_ JsValueRef valueRef,
-                                                _Out_ bool* result);
+JsErrorCode IsCaseInsensitiveStringValueInArray(JsValueRef arrayRef,
+                                                JsValueRef valueRef,
+                                                bool* result);
 
-JsErrorCode IsZero(_In_ JsValueRef value,
-                   _Out_ bool *result);
+JsErrorCode IsZero(JsValueRef value,
+                   bool *result);
 
-JsErrorCode IsUndefined(_In_ JsValueRef value,
-                        _Out_ bool *result);
+JsErrorCode IsUndefined(JsValueRef value,
+                        bool *result);
 
-JsErrorCode HasOwnProperty(_In_ JsValueRef object,
-                           _In_ JsValueRef prop,
-                           _Out_ JsValueRef *result);
+JsErrorCode HasOwnProperty(JsValueRef object,
+                           JsValueRef prop,
+                           JsValueRef *result);
 
-JsErrorCode HasProperty(_In_ JsValueRef object,
-                        _In_ JsValueRef prop,
-                        _Out_ bool *result);
+JsErrorCode HasProperty(JsValueRef object,
+                        JsValueRef prop,
+                        bool *result);
 
-JsErrorCode HasIndexedProperty(_In_ JsValueRef object,
-                               _In_ int index,
-                               _Out_ bool *result);
+JsErrorCode HasIndexedProperty(JsValueRef object,
+                               int index,
+                               bool *result);
 
-JsErrorCode GetEnumerableNamedProperties(_In_ JsValueRef object,
-                                         _Out_ JsValueRef *result);
+JsErrorCode GetEnumerableNamedProperties(JsValueRef object,
+                                         JsValueRef *result);
 
-JsErrorCode GetEnumerableIndexedProperties(_In_ JsValueRef object,
-                                           _Out_ JsValueRef *result);
+JsErrorCode GetEnumerableIndexedProperties(JsValueRef object,
+                                           JsValueRef *result);
 
-JsErrorCode GetIndexedOwnKeys(_In_ JsValueRef object,
-                              _Out_ JsValueRef *result);
+JsErrorCode GetIndexedOwnKeys(JsValueRef object,
+                              JsValueRef *result);
 
-JsErrorCode GetNamedOwnKeys(_In_ JsValueRef object,
-                            _Out_ JsValueRef *result);
+JsErrorCode GetNamedOwnKeys(JsValueRef object,
+                            JsValueRef *result);
 
-JsErrorCode CreateEnumerationIterator(_In_ JsValueRef enumeration,
-                                      _Out_ JsValueRef *result);
+JsErrorCode CreateEnumerationIterator(JsValueRef enumeration,
+                                      JsValueRef *result);
 
-JsErrorCode CreatePropertyDescriptorsEnumerationIterator(
-    _In_ JsValueRef enumeration,
-    _Out_ JsValueRef *result);
+JsErrorCode CreatePropertyDescriptorsEnumerationIterator(JsValueRef enumeration,
+                                                         JsValueRef *result);
 
-JsErrorCode ConcatArray(_In_ JsValueRef first,
-                        _In_ JsValueRef second,
-                        _Out_ JsValueRef *result);
+JsErrorCode ConcatArray(JsValueRef first,
+                        JsValueRef second,
+                        JsValueRef *result);
 
-JsErrorCode CallProperty(
-  _In_ JsValueRef ref,
-  _In_ JsPropertyIdRef idRef,
-  _In_reads_(argumentCount) JsValueRef *arguments,
-  _In_ unsigned short argumentCount,
-  _Out_ JsValueRef *result);
+JsErrorCode CallProperty(JsValueRef ref,
+                         CachedPropertyIdRef cachedIdRef,
+                         JsValueRef *arguments,
+                         unsigned short argumentCount,
+                         JsValueRef *result);
 
-JsErrorCode CallProperty(
-  _In_ JsValueRef ref,
-  _In_ const wchar_t *propertyName,
-  _In_reads_(argumentCount) JsValueRef *arguments,
-  _In_ unsigned short argumentCount,
-  _Out_ JsValueRef *result);
+JsErrorCode CallGetter(JsValueRef ref,
+                       CachedPropertyIdRef cachedIdRef,
+                       JsValueRef* result);
 
-JsErrorCode GetPropertyOfGlobal(_In_ const wchar_t *propertyName,
-                                _Out_ JsValueRef *ref);
+JsErrorCode CallGetter(JsValueRef ref,
+                       CachedPropertyIdRef cachedIdRef,
+                       int* result);
 
+JsErrorCode GetPropertyOfGlobal(const wchar_t *propertyName,
+                                JsValueRef *ref);
 
-JsErrorCode SetPropertyOfGlobal(_In_ const wchar_t *propertyName,
-                                _In_ JsValueRef ref);
+JsErrorCode SetPropertyOfGlobal(const wchar_t *propertyName,
+                                JsValueRef ref);
 
 JsValueRef GetNull();
 
@@ -168,81 +173,47 @@ JsValueRef GetTrue();
 
 JsValueRef GetFalse();
 
-// NOT IMPELEMENTED
-JsErrorCode SetException(_In_ const wchar_t* message,
-                         _In_ const wchar_t* stackTrace);
+JsErrorCode GetArrayLength(JsValueRef arrayRef,
+                           unsigned int *arraySize);
 
-JsErrorCode GetArrayLength(_In_ JsValueRef arrayRef,
-                           _Out_ unsigned int *arraySize);
+bool InstanceOf(JsValueRef first, JsValueRef second);
 
-JsErrorCode InstanceOf(_In_ JsValueRef first,
-                       _In_ JsValueRef second,
-                       _Out_ bool *result);
+JsErrorCode CloneObject(JsValueRef source,
+                        JsValueRef target,
+                        bool cloneProtoype = false);
 
-JsErrorCode InstanceOfGlobalType(_In_ JsValueRef first,
-                                 _In_ const wchar_t* typeName,
-                                 _Out_ bool *result);
+JsErrorCode ConcatArray(JsValueRef first,
+                        JsValueRef second,
+                        JsValueRef *result);
 
-JsErrorCode CloneObject(_In_ JsValueRef source,
-                        _In_ JsValueRef target,
-                        _In_ bool cloneProtoype = false);
+JsErrorCode GetPropertyNames(JsValueRef object,
+                             JsValueRef *namesArray);
 
-JsErrorCode ConcatArray(_In_ JsValueRef first,
-                        _In_ JsValueRef second,
-                        _Out_ JsValueRef *result);
+JsErrorCode AddExternalData(JsValueRef ref,
+                            JsPropertyIdRef externalDataPropertyId,
+                            void *data,
+                            JsFinalizeCallback onObjectFinalize);
 
-JsErrorCode GetPropertyNames(_In_ JsValueRef object,
-                             _Out_ JsValueRef *namesArray);
+JsErrorCode AddExternalData(JsValueRef ref,
+                            void *data,
+                            JsFinalizeCallback onObjectFinalize);
 
-JsErrorCode AddExternalData(_In_ JsValueRef ref,
-                            _In_ const wchar_t *externalDataName,
-                            _In_ void *data,
-                            _In_ JsFinalizeCallback onObjectFinalize);
+JsErrorCode GetExternalData(JsValueRef ref,
+                            JsPropertyIdRef idRef,
+                            void **data);
 
-JsErrorCode AddExternalData(_In_ JsValueRef ref,
-                            _In_ JsPropertyIdRef externalDataPropertyId,
-                            _In_ void *data,
-                            _In_ JsFinalizeCallback onObjectFinalize);
+JsErrorCode GetExternalData(JsValueRef ref,
+                            void **data);
 
-JsErrorCode AddExternalData(_In_ JsValueRef ref,
-                            _In_ void *data,
-                            _In_ JsFinalizeCallback onObjectFinalize);
+JsErrorCode CreateFunctionWithExternalData(JsNativeFunction,
+                                           void* data,
+                                           JsFinalizeCallback onObjectFinalize,
+                                           JsValueRef *function);
 
-JsErrorCode GetExternalDataDefaultName(
-                                       _Out_ const wchar_t **defaultName);
-
-JsErrorCode HasExternalData(_In_ JsValueRef ref,
-                            _In_ const wchar_t *externalDataName,
-                            _Out_ bool *result);
-
-JsErrorCode HasExternalData(_In_ JsValueRef ref,
-                            _Out_ bool *result);
-
-JsErrorCode HasExternalData(_In_ JsValueRef ref,
-                            JsPropertyIdRef propertyId,
-                            _Out_ bool *result);
-
-JsErrorCode GetExternalData(_In_ JsValueRef ref,
-                            _In_ JsPropertyIdRef idRef,
-                            _Out_ void **data);
-
-JsErrorCode GetExternalData(_In_ JsValueRef ref,
-                            _In_ const wchar_t *externalDataName,
-                            _Out_ void **data);
-
-JsErrorCode GetExternalData(_In_ JsValueRef ref,
-                            _Out_ void **data);
-
-JsErrorCode CreateFunctionWithExternalData(
-    _In_ JsNativeFunction,
-    void* data,
-    _In_ JsFinalizeCallback onObjectFinalize,
-    _Out_ JsValueRef *function);
-
-JsErrorCode ToString(_In_ JsValueRef ref,
-                     _Out_ JsValueRef * strRef,
-                     _Out_ const wchar_t** str,
-                     _In_ bool alreadyString = false);
+JsErrorCode ToString(JsValueRef ref,
+                     JsValueRef * strRef,
+                     const wchar_t** str,
+                     bool alreadyString = false);
 
 // the possible values for the property descriptor options
 enum PropertyDescriptorOptionValues {
@@ -254,70 +225,62 @@ enum PropertyDescriptorOptionValues {
 PropertyDescriptorOptionValues GetPropertyDescriptorOptionValue(bool b);
 
 JsErrorCode CreatePropertyDescriptor(
-    _In_ PropertyDescriptorOptionValues writable,
-    _In_ PropertyDescriptorOptionValues enumerable,
-    _In_ PropertyDescriptorOptionValues configurable,
-    _In_ JsValueRef value,
-    _In_ JsValueRef getter,
-    _In_ JsValueRef setter,
-    _Out_ JsValueRef *descriptor);
+    PropertyDescriptorOptionValues writable,
+    PropertyDescriptorOptionValues enumerable,
+    PropertyDescriptorOptionValues configurable,
+    JsValueRef value,
+    JsValueRef getter,
+    JsValueRef setter,
+    JsValueRef *descriptor);
 
-JsErrorCode CreatePropertyDescriptor(_In_ v8::PropertyAttribute attributes,
-                                     _In_ JsValueRef value,
-                                     _In_ JsValueRef getter,
-                                     _In_ JsValueRef setter,
-                                     _Out_ JsValueRef *descriptor);
+JsErrorCode CreatePropertyDescriptor(v8::PropertyAttribute attributes,
+                                     JsValueRef value,
+                                     JsValueRef getter,
+                                     JsValueRef setter,
+                                     JsValueRef *descriptor);
 
-JsErrorCode DefineProperty(_In_ JsValueRef object,
-                           _In_ const wchar_t * propertyName,
-                           _In_ PropertyDescriptorOptionValues writable,
-                           _In_ PropertyDescriptorOptionValues enumerable,
-                           _In_ PropertyDescriptorOptionValues configurable,
-                           _In_ JsValueRef value,
-                           _In_ JsValueRef getter,
-                           _In_ JsValueRef setter);
+JsErrorCode DefineProperty(JsValueRef object,
+                           const wchar_t * propertyName,
+                           PropertyDescriptorOptionValues writable,
+                           PropertyDescriptorOptionValues enumerable,
+                           PropertyDescriptorOptionValues configurable,
+                           JsValueRef value,
+                           JsValueRef getter,
+                           JsValueRef setter);
 
-JsErrorCode DefineProperty(_In_ JsValueRef object,
-                           _In_ JsPropertyIdRef propertyIdRef,
-                           _In_ PropertyDescriptorOptionValues writable,
-                           _In_ PropertyDescriptorOptionValues enumerable,
-                           _In_ PropertyDescriptorOptionValues configurable,
-                           _In_ JsValueRef value,
-                           _In_ JsValueRef getter,
-                           _In_ JsValueRef setter);
+JsErrorCode DefineProperty(JsValueRef object,
+                           JsPropertyIdRef propertyIdRef,
+                           PropertyDescriptorOptionValues writable,
+                           PropertyDescriptorOptionValues enumerable,
+                           PropertyDescriptorOptionValues configurable,
+                           JsValueRef value,
+                           JsValueRef getter,
+                           JsValueRef setter);
 
-JsErrorCode GetPropertyIdFromJsString(_In_ JsValueRef stringRef,
-                                      _Out_ JsPropertyIdRef *idRef);
+JsErrorCode GetPropertyIdFromName(JsValueRef nameRef,
+                                  JsPropertyIdRef *idRef);
 
-JsErrorCode GetPropertyIdFromValue(_In_ JsValueRef valueRef,
-                                   _Out_ JsPropertyIdRef *idRef);
+JsErrorCode GetPropertyIdFromValue(JsValueRef valueRef,
+                                   JsPropertyIdRef *idRef);
 
-JsErrorCode GetObjectConstructor(_In_ JsValueRef objectRef,
-                                 _Out_ JsValueRef *constructorRef);
+JsErrorCode GetObjectConstructor(JsValueRef objectRef,
+                                 JsValueRef *constructorRef);
 
-JsErrorCode SetIndexedProperty(_In_ JsValueRef object,
-                               _In_ int index,
-                               _In_ JsValueRef value);
+JsErrorCode SetIndexedProperty(JsValueRef object,
+                               int index,
+                               JsValueRef value);
 
-JsErrorCode GetIndexedProperty(_In_ JsValueRef object,
-                               _In_ int index,
-                               _In_ JsValueRef *value);
+JsErrorCode GetIndexedProperty(JsValueRef object,
+                               int index,
+                               JsValueRef *value);
 
-bool IsOfGlobalType(_In_ JsValueRef objectRef,
-                    _In_ const wchar_t *typeName);
-
-JsErrorCode SetConstructorName(_In_ JsValueRef objectRef,
-                               _In_ JsValueRef nameStringRef);
-
-JsErrorCode SetConstructorName(_In_ JsValueRef objectRef,
-                               _In_ const wchar_t * name);
-
-// used for debugging
-JsErrorCode StringifyObject(_In_ JsValueRef object,
-                            _Out_ const wchar_t **stringifiedObject);
-
-JsErrorCode GetConstructorName(_In_ JsValueRef objectRef,
-                               _Out_ const wchar_t **name);
+// CHAKRA-TODO : Currently Chakra's ParseScript doesn't support strictMode
+// flag. As a workaround, prepend the script text with 'use strict'.
+JsErrorCode ParseScript(const wchar_t *script,
+                        JsSourceContext sourceContext,
+                        const wchar_t *sourceUrl,
+                        bool isStrictMode,
+                        JsValueRef *result);
 
 void Unimplemented(const char * message);
 
@@ -348,7 +311,66 @@ class JsArguments {
 
 // Check if the errorCode was JsErrorOutOfMemory and if yes,
 // create and set the exception on the context
-void SetOutOfMemoryErrorIfExist(_In_ JsErrorCode errorCode);
+void SetOutOfMemoryErrorIfExist(JsErrorCode errorCode);
+
+
+// Helpers for JsCallFunction/JsConstructObject with undefined as arg0
+
+template <class T>
+JsErrorCode CallFunction(const T& api,
+                         JsValueRef func,
+                         JsValueRef* result) {
+  JsValueRef args[] = { jsrt::GetUndefined() };
+  return api(func, args, _countof(args), result);
+}
+
+template <class T>
+JsErrorCode CallFunction(const T& api,
+                         JsValueRef func, JsValueRef arg1,
+                         JsValueRef* result) {
+  JsValueRef args[] = { jsrt::GetUndefined(), arg1 };
+  return api(func, args, _countof(args), result);
+}
+
+template <class T>
+JsErrorCode CallFunction(const T& api,
+                         JsValueRef func, JsValueRef arg1, JsValueRef arg2,
+                         JsValueRef* result) {
+  JsValueRef args[] = { jsrt::GetUndefined(), arg1, arg2 };
+  return api(func, args, _countof(args), result);
+}
+
+inline JsErrorCode CallFunction(JsValueRef func,
+                                JsValueRef* result) {
+  return CallFunction(JsCallFunction, func, result);
+}
+
+inline JsErrorCode CallFunction(JsValueRef func, JsValueRef arg1,
+                                JsValueRef* result) {
+  return CallFunction(JsCallFunction, func, arg1, result);
+}
+
+inline JsErrorCode CallFunction(JsValueRef func,
+                                JsValueRef arg1, JsValueRef arg2,
+                                JsValueRef* result) {
+  return CallFunction(JsCallFunction, func, arg1, arg2, result);
+}
+
+inline JsErrorCode ConstructObject(JsValueRef func,
+                                   JsValueRef* result) {
+  return CallFunction(JsConstructObject, func, result);
+}
+
+inline JsErrorCode ConstructObject(JsValueRef func, JsValueRef arg1,
+                                   JsValueRef* result) {
+  return CallFunction(JsConstructObject, func, arg1, result);
+}
+
+inline JsErrorCode ConstructObject(JsValueRef func,
+                                   JsValueRef arg1, JsValueRef arg2,
+                                   JsValueRef* result) {
+  return CallFunction(JsConstructObject, func, arg1, arg2, result);
+}
 
 // Clean up internal Chakra state by cleanly disposing at least one
 // context
