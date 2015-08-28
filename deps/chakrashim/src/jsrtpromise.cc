@@ -23,10 +23,10 @@
 
 namespace jsrt {
 
-static void CALLBACK PromiseContinuationCallback(
-    JsValueRef task, void *callbackState) {
+static void CALLBACK PromiseContinuationCallback(JsValueRef task,
+                                                 void *callbackState) {
   JsValueRef promiseContinuationFunction =
-    jsrt::ContextShim::GetCurrent()->GetPromiseContinuationFunction();
+    ContextShim::GetCurrent()->GetPromiseContinuationFunction();
 
   JsValueRef result;
   jsrt::CallFunction(promiseContinuationFunction, task, &result);

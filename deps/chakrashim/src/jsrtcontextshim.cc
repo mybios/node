@@ -72,6 +72,7 @@ ContextShim::ContextShim(IsolateShim * isolateShim,
         JS_INVALID_REFERENCE),
       getNamedOwnKeysFunction(JS_INVALID_REFERENCE),
       getIndexedOwnKeysFunction(JS_INVALID_REFERENCE),
+      getStackTraceFunction(JS_INVALID_REFERENCE),
       forEachNonConfigurablePropertyFunction(JS_INVALID_REFERENCE),
       testFunctionTypeFunction(JS_INVALID_REFERENCE),
       createTargetFunction(JS_INVALID_REFERENCE) {
@@ -253,7 +254,7 @@ bool ContextShim::InitializeObjectPrototypeToStringShim() {
   JsValueRef function;
   if (!InitializeBuiltIn(&function, [=](JsValueRef * value) {
     JsErrorCode error = JsCreateFunction(
-      v8::chakrashim::InternalMethods::ObjectPrototypeToStringShim,
+      v8::Utils::ObjectPrototypeToStringShim,
       GetGlobalPrototypeFunction(GlobalPrototypeFunction::Object_toString),
       value);
     if (error != JsNoError) {
@@ -315,9 +316,10 @@ bool ContextShim::InitializeBuiltIns() {
 
   if (!InitializeBuiltIn(&getOwnPropertyDescriptorFunction,
                          [this](JsValueRef * value) {
-                           return GetProperty(GetObjectConstructor(),
-                                              L"getOwnPropertyDescriptor",
-                                              value);
+                           return GetProperty(
+                             GetObjectConstructor(),
+                             CachedPropertyIdRef::getOwnPropertyDescriptor,
+                             value);
                          })) {
     return false;
   }
@@ -344,11 +346,11 @@ bool ContextShim::InitializeBuiltIns() {
 }
 
 static JsValueRef CALLBACK ProxyOfGlobalGetPrototypeOfCallback(
-    _In_ JsValueRef callee,
-    _In_ bool isConstructCall,
-    _In_ JsValueRef *arguments,
-    _In_ unsigned short argumentCount,
-    _In_opt_ void *callbackState) {
+    JsValueRef callee,
+    bool isConstructCall,
+    JsValueRef *arguments,
+    unsigned short argumentCount,
+    void *callbackState) {
   // Return the target (which is the global object)
   return arguments[1];
 }
@@ -559,7 +561,7 @@ void ContextShim::SetAlignedPointerInEmbedderData(int index, void * value) {
       embedderData.resize(minSize);
     }
     embedderData[index] = value;
-  } catch (const std::exception&) {
+  } catch(const std::exception&) {
   }
 }
 
@@ -726,6 +728,11 @@ JsValueRef ContextShim::GetGetIndexedOwnKeysFunction() {
                                &getIndexedOwnKeysFunction);
 }
 
+JsValueRef ContextShim::GetGetStackTraceFunction() {
+  return GetCachedShimFunction(CachedPropertyIdRef::getStackTrace,
+                               &getStackTraceFunction);
+}
+
 void ContextShim::EnsureThrowAccessorErrorFunctions() {
   if (throwAccessorErrorFunctions[0] == JS_INVALID_REFERENCE) {
     JsValueRef arr = JS_INVALID_REFERENCE;
@@ -770,27 +777,29 @@ JsValueRef ContextShim::GetCreateTargetFunction() {
 }  // namespace jsrt
 
 namespace v8 {
-namespace chakrashim {
 
 // This shim wraps Object.prototype.toString to supports ObjectTemplate class
 // name.
-JsValueRef CALLBACK InternalMethods::ObjectPrototypeToStringShim(
-  JsValueRef callee,
-  bool isConstructCall,
-  JsValueRef *arguments,
-  unsigned short argumentCount,
-  void *callbackState) {
+JsValueRef CALLBACK Utils::ObjectPrototypeToStringShim(
+    JsValueRef callee,
+    bool isConstructCall,
+    JsValueRef *arguments,
+    unsigned short argumentCount,
+    void *callbackState) {
   if (argumentCount >= 1) {
     using namespace v8;
     Isolate* iso = Isolate::GetCurrent();
     HandleScope scope(iso);
 
     Object* obj = static_cast<Object*>(arguments[0]);
-    Local<String> str = InternalMethods::GetClassName(obj);
-    if (!str.IsEmpty()) {
-      str = String::Concat(String::NewFromUtf8(iso, "[object "), str);
-      str = String::Concat(str, String::NewFromUtf8(iso, "]"));
-      return *str;
+    ObjectTemplate* objTemplate = obj->GetObjectTemplate();
+    if (objTemplate) {
+      Local<String> str = objTemplate->GetClassName();
+      if (!str.IsEmpty()) {
+        str = String::Concat(String::NewFromUtf8(iso, "[object "), str);
+        str = String::Concat(str, String::NewFromUtf8(iso, "]"));
+        return *str;
+      }
     }
   }
 
@@ -803,5 +812,4 @@ JsValueRef CALLBACK InternalMethods::ObjectPrototypeToStringShim(
   return result;
 }
 
-}  // namespace chakrashim
 }  // namespace v8

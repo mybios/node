@@ -25,9 +25,9 @@
 
 namespace jsrt {
 
-JsErrorCode GetProperty(_In_ JsValueRef ref,
-                        _In_ JsValueRef propName,
-                        _Out_ JsValueRef *result) {
+JsErrorCode GetProperty(JsValueRef ref,
+                        JsValueRef propName,
+                        JsValueRef *result) {
   JsPropertyIdRef idRef;
   JsErrorCode error;
 
@@ -41,9 +41,9 @@ JsErrorCode GetProperty(_In_ JsValueRef ref,
   return error;
 }
 
-JsErrorCode GetProperty(_In_ JsValueRef ref,
-                        _In_ const wchar_t *propertyName,
-                        _Out_ JsValueRef *result) {
+JsErrorCode GetProperty(JsValueRef ref,
+                        const wchar_t *propertyName,
+                        JsValueRef *result) {
   JsPropertyIdRef idRef;
   JsErrorCode error;
 
@@ -58,9 +58,18 @@ JsErrorCode GetProperty(_In_ JsValueRef ref,
   return error;
 }
 
-JsErrorCode GetProperty(_In_ JsValueRef ref,
-                        _In_ JsPropertyIdRef propId,
-                        _Out_ int *intValue) {
+JsErrorCode GetProperty(JsValueRef ref,
+                        CachedPropertyIdRef cachedIdRef,
+                        JsValueRef *result) {
+  JsPropertyIdRef idRef =
+    IsolateShim::GetCurrent()->GetCachedPropertyIdRef(cachedIdRef);
+
+  return JsGetProperty(ref, idRef, result);
+}
+
+JsErrorCode GetProperty(JsValueRef ref,
+                        JsPropertyIdRef propId,
+                        int *intValue) {
   JsValueRef value;
   JsErrorCode error = JsGetProperty(ref, propId, &value);
   if (error != JsNoError) {
@@ -70,25 +79,17 @@ JsErrorCode GetProperty(_In_ JsValueRef ref,
   return ValueToIntLikely(value, intValue);
 }
 
-JsErrorCode SetProperty(_In_ JsValueRef ref,
-                        _In_ const wchar_t* propName,
-                        _In_ JsValueRef propValue) {
-  JsPropertyIdRef idRef;
-  JsErrorCode error;
-
-  error = JsGetPropertyIdFromName(propName, &idRef);
-  if (error != JsNoError) {
-    return error;
-  }
-
-  error = JsSetProperty(ref, idRef, propValue, false);
-
-  return error;
+JsErrorCode SetProperty(JsValueRef ref,
+                        CachedPropertyIdRef cachedIdRef,
+                        JsValueRef propValue) {
+  JsPropertyIdRef idRef =
+    IsolateShim::GetCurrent()->GetCachedPropertyIdRef(cachedIdRef);
+  return JsSetProperty(ref, idRef, propValue, false);
 }
 
-JsErrorCode SetProperty(_In_ JsValueRef ref,
-                        _In_ JsValueRef propName,
-                        _In_ JsValueRef propValue) {
+JsErrorCode SetProperty(JsValueRef ref,
+                        JsValueRef propName,
+                        JsValueRef propValue) {
   JsPropertyIdRef idRef;
   JsErrorCode error;
 
@@ -102,9 +103,9 @@ JsErrorCode SetProperty(_In_ JsValueRef ref,
   return error;
 }
 
-JsErrorCode DeleteProperty(_In_ JsValueRef ref,
-                           _In_ JsValueRef propName,
-                           _Out_ JsValueRef* result) {
+JsErrorCode DeleteProperty(JsValueRef ref,
+                           JsValueRef propName,
+                           JsValueRef* result) {
   JsPropertyIdRef idRef;
   JsErrorCode error;
 
@@ -118,16 +119,17 @@ JsErrorCode DeleteProperty(_In_ JsValueRef ref,
   return error;
 }
 
-JsErrorCode CallProperty(
-  _In_ JsValueRef ref,
-  _In_ JsPropertyIdRef idRef,
-  _In_reads_(argumentCount) JsValueRef *arguments,
-  _In_ unsigned short argumentCount,
-  _Out_ JsValueRef *result) {
+JsErrorCode CallProperty(JsValueRef ref,
+                         CachedPropertyIdRef cachedIdRef,
+                         JsValueRef *arguments,
+                         unsigned short argumentCount,
+                         JsValueRef *result) {
   JsValueRef propertyRef;
   JsErrorCode error;
 
-  error = JsGetProperty(ref, idRef, &propertyRef);
+  error = JsGetProperty(ref,
+    jsrt::IsolateShim::GetCurrent()->GetCachedPropertyIdRef(cachedIdRef),
+    &propertyRef);
   if (error != JsNoError) {
     return error;
   }
@@ -136,37 +138,18 @@ JsErrorCode CallProperty(
   return error;
 }
 
-JsErrorCode CallProperty(
-  _In_ JsValueRef ref,
-  _In_ const wchar_t *propertyName,
-  _In_reads_(argumentCount) JsValueRef *arguments,
-  _In_ unsigned short argumentCount,
-  _Out_ JsValueRef *result) {
-  JsPropertyIdRef idRef;
-  JsErrorCode error;
-
-  error = JsGetPropertyIdFromName(propertyName, &idRef);
-  if (error != JsNoError) {
-    return error;
-  }
-
-  return CallProperty(ref, idRef, arguments, argumentCount, result);
-}
-
-JsErrorCode CallGetter(
-    _In_ JsValueRef ref,
-    _In_ const wchar_t *propertyName,
-    _Out_ JsValueRef* result) {
+JsErrorCode CallGetter(JsValueRef ref,
+                       CachedPropertyIdRef cachedIdRef,
+                       JsValueRef* result) {
   JsValueRef args[] = { ref };
-  return CallProperty(ref, propertyName, args, _countof(args), result);
+  return CallProperty(ref, cachedIdRef, args, _countof(args), result);
 }
 
-JsErrorCode CallGetter(
-    _In_ JsValueRef ref,
-    _In_ const wchar_t *propertyName,
-    _Out_ int* result) {
+JsErrorCode CallGetter(JsValueRef ref,
+                       CachedPropertyIdRef cachedIdRef,
+                       int* result) {
   JsValueRef value;
-  JsErrorCode error = CallGetter(ref, propertyName, &value);
+  JsErrorCode error = CallGetter(ref, cachedIdRef, &value);
   if (error != JsNoError) {
     return error;
   }
@@ -174,42 +157,42 @@ JsErrorCode CallGetter(
   return ValueToIntLikely(value, result);
 }
 
-JsErrorCode GetPropertyOfGlobal(_In_ const wchar_t *propertyName,
-                                _Out_ JsValueRef *ref) {
-  JsErrorCode error = JsNoError;
-  JsValueRef globalRef;
+JsErrorCode GetPropertyOfGlobal(const wchar_t *propertyName,
+                                JsValueRef *ref) {
+  JsErrorCode error;
+  JsPropertyIdRef propertyIdRef, globalRef;
 
-  error = JsGetGlobalObject(&globalRef);
-
-  if (error != JsNoError) {
-    return error;
-  }
-
-  error = GetProperty(globalRef, propertyName, ref);
-
-  return error;
-}
-
-JsErrorCode SetPropertyOfGlobal(_In_ const wchar_t *propertyName,
-                                _In_ JsValueRef ref) {
-  JsErrorCode error = JsNoError;
-  JsValueRef globalRef;
-
-  error = JsGetGlobalObject(&globalRef);
-
-  if (error != JsNoError) {
-    return error;
-  }
-
-  JsPropertyIdRef propertyIdRef;
   error = JsGetPropertyIdFromName(propertyName, &propertyIdRef);
   if (error != JsNoError) {
     return error;
   }
 
-  error = JsSetProperty(globalRef, propertyIdRef, ref, false);
+  error = JsGetGlobalObject(&globalRef);
 
-  return error;
+  if (error != JsNoError) {
+    return error;
+  }
+
+  return JsGetProperty(globalRef, propertyIdRef, ref);
+}
+
+JsErrorCode SetPropertyOfGlobal(const wchar_t *propertyName,
+                                JsValueRef ref) {
+  JsErrorCode error;
+  JsPropertyIdRef propertyIdRef, globalRef;
+
+  error = JsGetPropertyIdFromName(propertyName, &propertyIdRef);
+  if (error != JsNoError) {
+    return error;
+  }
+
+  error = JsGetGlobalObject(&globalRef);
+
+  if (error != JsNoError) {
+    return error;
+  }
+
+  return JsSetProperty(globalRef, propertyIdRef, ref, false);
 }
 
 JsValueRef GetTrue() {
@@ -228,8 +211,8 @@ JsValueRef GetNull() {
   return ContextShim::GetCurrent()->GetNull();
 }
 
-JsErrorCode GetArrayLength(_In_ JsValueRef arrayRef,
-                           _Out_ unsigned int *arraySize) {
+JsErrorCode GetArrayLength(JsValueRef arrayRef,
+                           unsigned int *arraySize) {
   JsErrorCode error;
 
   JsPropertyIdRef arrayLengthPropertyIdRef =
@@ -249,41 +232,23 @@ JsErrorCode GetArrayLength(_In_ JsValueRef arrayRef,
   return error;
 }
 
-JsErrorCode InstanceOf(_In_ JsValueRef first,
-                       _In_ JsValueRef second,
-                       _Out_ bool *result) {
+bool InstanceOf(JsValueRef first, JsValueRef second) {
   JsValueRef instanceOfFunction =
     ContextShim::GetCurrent()->GetInstanceOfFunction();
+
   JsValueRef resultRef;
-  JsErrorCode error = CallFunction(instanceOfFunction, first, second,
-                                   &resultRef);
-
-  if (error != JsNoError) {
-    return error;
+  if (CallFunction(instanceOfFunction, first, second,
+                   &resultRef) != JsNoError) {
+    return false;
   }
 
-  error = JsBooleanToBool(resultRef, result);
-
-  return error;
+  bool result;
+  return JsBooleanToBool(resultRef, &result) == JsNoError && result;
 }
 
-JsErrorCode InstanceOfGlobalType(_In_ JsValueRef first,
-                                 _In_ const wchar_t* typeName,
-                                 _Out_ bool *result) {
-  JsValueRef typeRef;
-  JsErrorCode error;
-  error = jsrt::GetPropertyOfGlobal(typeName, &typeRef);
-  if (error != JsNoError) {
-    return error;
-  }
-
-  error = jsrt::InstanceOf(first, typeRef, result);
-  return error;
-}
-
-JsErrorCode CloneObject(_In_ JsValueRef source,
-                        _In_ JsValueRef target,
-                        _In_ bool clonePrototype) {
+JsErrorCode CloneObject(JsValueRef source,
+                        JsValueRef target,
+                        bool clonePrototype) {
   JsValueRef cloneObjectFunction =
     ContextShim::GetCurrent()->GetCloneObjectFunction();
 
@@ -306,9 +271,9 @@ JsErrorCode CloneObject(_In_ JsValueRef source,
   return error;
 }
 
-JsErrorCode HasOwnProperty(_In_ JsValueRef object,
-                           _In_ JsValueRef prop,
-                           _Out_ JsValueRef *result) {
+JsErrorCode HasOwnProperty(JsValueRef object,
+                           JsValueRef prop,
+                           JsValueRef *result) {
   JsValueRef hasOwnPropertyFunction =
     ContextShim::GetCurrent()->GetGlobalPrototypeFunction(
       ContextShim::GlobalPrototypeFunction::Object_hasOwnProperty);
@@ -318,10 +283,10 @@ JsErrorCode HasOwnProperty(_In_ JsValueRef object,
 }
 
 JsErrorCode IsValueInArray(
-  _In_ JsValueRef arrayRef,
-  _In_ JsValueRef valueRef,
-  _In_ std::function<JsErrorCode(JsValueRef, JsValueRef, bool*)> comperator,
-  _Out_ bool* result) {
+  JsValueRef arrayRef,
+  JsValueRef valueRef,
+  std::function<JsErrorCode(JsValueRef, JsValueRef, bool*)> comperator,
+  bool* result) {
   JsErrorCode error;
   unsigned int length;
   *result = false;
@@ -360,15 +325,15 @@ JsErrorCode IsValueInArray(
   return JsNoError;
 }
 
-JsErrorCode IsValueInArray(_In_ JsValueRef arrayRef,
-                           _In_ JsValueRef valueRef,
-                           _Out_ bool* result) {
+JsErrorCode IsValueInArray(JsValueRef arrayRef,
+                           JsValueRef valueRef,
+                           bool* result) {
   return IsValueInArray(arrayRef, valueRef, nullptr, result);
 }
 
-JsErrorCode IsCaseInsensitiveStringValueInArray(_In_ JsValueRef arrayRef,
-                                                _In_ JsValueRef valueRef,
-                                                _Out_ bool* result) {
+JsErrorCode IsCaseInsensitiveStringValueInArray(JsValueRef arrayRef,
+                                                JsValueRef valueRef,
+                                                bool* result) {
   return IsValueInArray(arrayRef, valueRef, [=](
       JsValueRef first, JsValueRef second, bool* areEqual) -> JsErrorCode {
     JsValueType type;
@@ -413,65 +378,64 @@ JsErrorCode IsCaseInsensitiveStringValueInArray(_In_ JsValueRef arrayRef,
                         result);
 }
 
-JsErrorCode GetOwnPropertyDescriptor(_In_ JsValueRef ref,
-                                     _In_ JsValueRef prop,
-                                     _Out_ JsValueRef* result) {
+JsErrorCode GetOwnPropertyDescriptor(JsValueRef ref,
+                                     JsValueRef prop,
+                                     JsValueRef* result) {
   return CallFunction(
     ContextShim::GetCurrent()->GetGetOwnPropertyDescriptorFunction(),
     ref, prop, result);
 }
 
-JsErrorCode IsZero(_In_ JsValueRef value,
-                   _Out_ bool *result) {
+JsErrorCode IsZero(JsValueRef value,
+                   bool *result) {
   return JsEquals(value, ContextShim::GetCurrent()->GetZero(), result);
 }
 
-JsErrorCode IsUndefined(_In_ JsValueRef value,
-                        _Out_ bool *result) {
+JsErrorCode IsUndefined(JsValueRef value,
+                        bool *result) {
   return JsEquals(value, GetUndefined(), result);
 }
 
-JsErrorCode GetEnumerableNamedProperties(_In_ JsValueRef object,
-                                         _Out_ JsValueRef *result) {
+JsErrorCode GetEnumerableNamedProperties(JsValueRef object,
+                                         JsValueRef *result) {
   return CallFunction(
     ContextShim::GetCurrent()->GetGetEnumerableNamedPropertiesFunction(),
     object, result);
 }
 
-JsErrorCode GetEnumerableIndexedProperties(_In_ JsValueRef object,
-                                           _Out_ JsValueRef *result) {
+JsErrorCode GetEnumerableIndexedProperties(JsValueRef object,
+                                           JsValueRef *result) {
   return CallFunction(
     ContextShim::GetCurrent()->GetGetEnumerableIndexedPropertiesFunction(),
     object, result);
 }
 
-JsErrorCode GetIndexedOwnKeys(_In_ JsValueRef object,
-                              _Out_ JsValueRef *result) {
+JsErrorCode GetIndexedOwnKeys(JsValueRef object,
+                              JsValueRef *result) {
   return CallFunction(
     ContextShim::GetCurrent()->GetGetIndexedOwnKeysFunction(),
     object, result);
 }
 
-JsErrorCode GetNamedOwnKeys(_In_ JsValueRef object,
-                            _Out_ JsValueRef *result) {
+JsErrorCode GetNamedOwnKeys(JsValueRef object,
+                            JsValueRef *result) {
   return CallFunction(
     ContextShim::GetCurrent()->GetGetNamedOwnKeysFunction(),
     object, result);
 }
 
-JsErrorCode ConcatArray(_In_ JsValueRef first,
-                        _In_ JsValueRef second,
-                        _Out_ JsValueRef *result) {
+JsErrorCode ConcatArray(JsValueRef first,
+                        JsValueRef second,
+                        JsValueRef *result) {
   JsValueRef args[] = { first, second };
 
   return CallProperty(first,
-                      IsolateShim::GetCurrent()->GetCachedPropertyIdRef(
-                        CachedPropertyIdRef::concat),
+                      CachedPropertyIdRef::concat,
                       args, _countof(args), result);
 }
 
-JsErrorCode CreateEnumerationIterator(_In_ JsValueRef enumeration,
-                                      _Out_ JsValueRef *result) {
+JsErrorCode CreateEnumerationIterator(JsValueRef enumeration,
+                                      JsValueRef *result) {
   return CallFunction(
     ContextShim::GetCurrent()->GetCreateEnumerationIteratorFunction(),
     enumeration, result);
@@ -485,17 +449,17 @@ JsErrorCode CreatePropertyDescriptorsEnumerationIterator(JsValueRef enumeration,
     enumeration, result);
 }
 
-JsErrorCode GetPropertyNames(_In_ JsValueRef object,
-                             _Out_ JsValueRef *result) {
+JsErrorCode GetPropertyNames(JsValueRef object,
+                             JsValueRef *result) {
   return CallFunction(
     ContextShim::GetCurrent()->GetGetPropertyNamesFunction(),
     object, result);
 }
 
-JsErrorCode AddExternalData(_In_ JsValueRef ref,
-                            _In_ JsPropertyIdRef externalDataPropertyId,
-                            _In_ void *data,
-                            _In_ JsFinalizeCallback onObjectFinalize) {
+JsErrorCode AddExternalData(JsValueRef ref,
+                            JsPropertyIdRef externalDataPropertyId,
+                            void *data,
+                            JsFinalizeCallback onObjectFinalize) {
   JsErrorCode error;
 
   JsValueRef externalObjectRef;
@@ -514,9 +478,9 @@ JsErrorCode AddExternalData(_In_ JsValueRef ref,
   return error;
 }
 
-JsErrorCode AddExternalData(_In_ JsValueRef ref,
-                            _In_ void *data,
-                            _In_ JsFinalizeCallback onObjectFinalize) {
+JsErrorCode AddExternalData(JsValueRef ref,
+                            void *data,
+                            JsFinalizeCallback onObjectFinalize) {
   IsolateShim* iso = IsolateShim::GetCurrent();
   JsPropertyIdRef propId = iso->GetCachedSymbolPropertyIdRef(
     CachedSymbolPropertyIdRef::__external__);
@@ -524,9 +488,9 @@ JsErrorCode AddExternalData(_In_ JsValueRef ref,
   return AddExternalData(ref, propId, data, onObjectFinalize);
 }
 
-JsErrorCode GetExternalData(_In_ JsValueRef ref,
-                            _In_ JsPropertyIdRef idRef,
-                            _Out_ void **data) {
+JsErrorCode GetExternalData(JsValueRef ref,
+                            JsPropertyIdRef idRef,
+                            void **data) {
   JsErrorCode error;
 
   JsValueRef externalObject;
@@ -544,8 +508,8 @@ JsErrorCode GetExternalData(_In_ JsValueRef ref,
   return error;
 }
 
-JsErrorCode GetExternalData(_In_ JsValueRef ref,
-                            _Out_ void **data) {
+JsErrorCode GetExternalData(JsValueRef ref,
+                            void **data) {
   IsolateShim* iso = IsolateShim::GetCurrent();
   JsPropertyIdRef propId = iso->GetCachedSymbolPropertyIdRef(
     CachedSymbolPropertyIdRef::__external__);
@@ -554,10 +518,10 @@ JsErrorCode GetExternalData(_In_ JsValueRef ref,
 }
 
 JsErrorCode CreateFunctionWithExternalData(
-    _In_ JsNativeFunction nativeFunction,
+    JsNativeFunction nativeFunction,
     void* data,
-    _In_ JsFinalizeCallback onObjectFinalize,
-    _Out_ JsValueRef *function) {
+    JsFinalizeCallback onObjectFinalize,
+    JsValueRef *function) {
   JsErrorCode error;
   error = JsCreateFunction(nativeFunction, nullptr, function);
   if (error != JsNoError) {
@@ -568,10 +532,10 @@ JsErrorCode CreateFunctionWithExternalData(
   return error;
 }
 
-JsErrorCode ToString(_In_ JsValueRef ref,
-                     _Out_ JsValueRef * strRef,
-                     _Out_ const wchar_t** str,
-                     _In_ bool alreadyString) {
+JsErrorCode ToString(JsValueRef ref,
+                     JsValueRef * strRef,
+                     const wchar_t** str,
+                     bool alreadyString) {
   // just a dummy here
   size_t size;
   JsErrorCode error;
@@ -597,13 +561,13 @@ PropertyDescriptorOptionValues GetPropertyDescriptorOptionValue(bool b) {
 }
 
 JsErrorCode CreatePropertyDescriptor(
-    _In_ PropertyDescriptorOptionValues writable,
-    _In_ PropertyDescriptorOptionValues enumerable,
-    _In_ PropertyDescriptorOptionValues configurable,
-    _In_ JsValueRef value,
-    _In_ JsValueRef getter,
-    _In_ JsValueRef setter,
-    _Out_ JsValueRef *descriptor) {
+    PropertyDescriptorOptionValues writable,
+    PropertyDescriptorOptionValues enumerable,
+    PropertyDescriptorOptionValues configurable,
+    JsValueRef value,
+    JsValueRef getter,
+    JsValueRef setter,
+    JsValueRef *descriptor) {
   JsErrorCode error;
   error = JsCreateObject(descriptor);
   if (error != JsNoError) {
@@ -688,11 +652,11 @@ JsErrorCode CreatePropertyDescriptor(
   return JsNoError;
 }
 
-JsErrorCode CreatePropertyDescriptor(_In_ v8::PropertyAttribute attributes,
-                                     _In_ JsValueRef value,
-                                     _In_ JsValueRef getter,
-                                     _In_ JsValueRef setter,
-                                     _Out_ JsValueRef *descriptor) {
+JsErrorCode CreatePropertyDescriptor(v8::PropertyAttribute attributes,
+                                     JsValueRef value,
+                                     JsValueRef getter,
+                                     JsValueRef setter,
+                                     JsValueRef *descriptor) {
   return CreatePropertyDescriptor(
     GetPropertyDescriptorOptionValue(!(attributes & v8::ReadOnly)),
     GetPropertyDescriptorOptionValue(!(attributes & v8::DontEnum)),
@@ -703,14 +667,14 @@ JsErrorCode CreatePropertyDescriptor(_In_ v8::PropertyAttribute attributes,
     descriptor);
 }
 
-JsErrorCode DefineProperty(_In_ JsValueRef object,
-                           _In_ JsPropertyIdRef propertyIdRef,
-                           _In_ PropertyDescriptorOptionValues writable,
-                           _In_ PropertyDescriptorOptionValues enumerable,
-                           _In_ PropertyDescriptorOptionValues configurable,
-                           _In_ JsValueRef value,
-                           _In_ JsValueRef getter,
-                           _In_ JsValueRef setter) {
+JsErrorCode DefineProperty(JsValueRef object,
+                           JsPropertyIdRef propertyIdRef,
+                           PropertyDescriptorOptionValues writable,
+                           PropertyDescriptorOptionValues enumerable,
+                           PropertyDescriptorOptionValues configurable,
+                           JsValueRef value,
+                           JsValueRef getter,
+                           JsValueRef setter) {
   JsValueRef descriptor;
   JsErrorCode error;
   error = CreatePropertyDescriptor(
@@ -728,14 +692,14 @@ JsErrorCode DefineProperty(_In_ JsValueRef object,
   return error;
 }
 
-JsErrorCode DefineProperty(_In_ JsValueRef object,
-                           _In_ const wchar_t * propertyName,
-                           _In_ PropertyDescriptorOptionValues writable,
-                           _In_ PropertyDescriptorOptionValues enumerable,
-                           _In_ PropertyDescriptorOptionValues configurable,
-                           _In_ JsValueRef value,
-                           _In_ JsValueRef getter,
-                           _In_ JsValueRef setter) {
+JsErrorCode DefineProperty(JsValueRef object,
+                           const wchar_t * propertyName,
+                           PropertyDescriptorOptionValues writable,
+                           PropertyDescriptorOptionValues enumerable,
+                           PropertyDescriptorOptionValues configurable,
+                           JsValueRef value,
+                           JsValueRef getter,
+                           JsValueRef setter) {
   JsErrorCode error;
   JsPropertyIdRef propertyIdRef;
 
@@ -751,8 +715,8 @@ JsErrorCode DefineProperty(_In_ JsValueRef object,
 }
 
 // CHAKRA-TODO: cache the property ids in a hash table?
-JsErrorCode GetPropertyIdFromName(_In_ JsValueRef nameRef,
-                                  _Out_ JsPropertyIdRef *idRef) {
+JsErrorCode GetPropertyIdFromName(JsValueRef nameRef,
+                                  JsPropertyIdRef *idRef) {
   JsErrorCode error;
   const wchar_t *propertyName;
   size_t propertyNameSize;
@@ -768,8 +732,8 @@ JsErrorCode GetPropertyIdFromName(_In_ JsValueRef nameRef,
   return error;
 }
 
-JsErrorCode GetPropertyIdFromValue(_In_ JsValueRef valueRef,
-                                   _Out_ JsPropertyIdRef *idRef) {
+JsErrorCode GetPropertyIdFromValue(JsValueRef valueRef,
+                                   JsPropertyIdRef *idRef) {
   JsErrorCode error;
 
   error = GetPropertyIdFromName(valueRef, idRef);
@@ -785,8 +749,8 @@ JsErrorCode GetPropertyIdFromValue(_In_ JsValueRef valueRef,
   return error;
 }
 
-JsErrorCode GetObjectConstructor(_In_ JsValueRef objectRef,
-                                 _Out_ JsValueRef *constructorRef) {
+JsErrorCode GetObjectConstructor(JsValueRef objectRef,
+                                 JsValueRef *constructorRef) {
   IsolateShim* iso = IsolateShim::GetCurrent();
   JsPropertyIdRef constructorPropertyIdRef = iso->GetCachedPropertyIdRef(
     CachedPropertyIdRef::constructor);
@@ -794,9 +758,9 @@ JsErrorCode GetObjectConstructor(_In_ JsValueRef objectRef,
   return JsGetProperty(objectRef, constructorPropertyIdRef, constructorRef);
 }
 
-JsErrorCode SetIndexedProperty(_In_ JsValueRef object,
-                               _In_ int index,
-                               _In_ JsValueRef value) {
+JsErrorCode SetIndexedProperty(JsValueRef object,
+                               int index,
+                               JsValueRef value) {
   JsErrorCode error;
   JsValueRef indexRef;
   error = JsIntToNumber(index, &indexRef);
@@ -808,9 +772,9 @@ JsErrorCode SetIndexedProperty(_In_ JsValueRef object,
   return error;
 }
 
-JsErrorCode GetIndexedProperty(_In_ JsValueRef object,
-                               _In_ int index,
-                               _In_ JsValueRef *value) {
+JsErrorCode GetIndexedProperty(JsValueRef object,
+                               int index,
+                               JsValueRef *value) {
   JsErrorCode error;
   JsValueRef indexRef;
   error = JsIntToNumber(index, &indexRef);
@@ -822,8 +786,8 @@ JsErrorCode GetIndexedProperty(_In_ JsValueRef object,
   return error;
 }
 
-JsErrorCode DeleteIndexedProperty(_In_ JsValueRef object,
-                                  _In_ int index) {
+JsErrorCode DeleteIndexedProperty(JsValueRef object,
+                                  int index) {
   JsErrorCode error;
   JsValueRef indexRef;
   error = JsIntToNumber(index, &indexRef);
@@ -835,9 +799,9 @@ JsErrorCode DeleteIndexedProperty(_In_ JsValueRef object,
   return error;
 }
 
-JsErrorCode HasProperty(_In_ JsValueRef object,
-                        _In_ JsValueRef propName,
-                        _Out_ bool *result) {
+JsErrorCode HasProperty(JsValueRef object,
+                        JsValueRef propName,
+                        bool *result) {
   JsPropertyIdRef idRef;
   JsErrorCode error;
 
@@ -851,9 +815,9 @@ JsErrorCode HasProperty(_In_ JsValueRef object,
   return error;
 }
 
-JsErrorCode HasIndexedProperty(_In_ JsValueRef object,
-                               _In_ int index,
-                               _Out_ bool *result) {
+JsErrorCode HasIndexedProperty(JsValueRef object,
+                               int index,
+                               bool *result) {
   JsErrorCode error;
   JsValueRef indexRef;
   error = JsIntToNumber(index, &indexRef);
@@ -865,11 +829,20 @@ JsErrorCode HasIndexedProperty(_In_ JsValueRef object,
   return error;
 }
 
-bool IsOfGlobalType(_In_ JsValueRef ref, _In_ const wchar_t *typeName) {
-  bool result;
-  return InstanceOfGlobalType(ref, typeName, &result) == JsNoError && result;
+JsErrorCode ParseScript(const wchar_t *script,
+                        JsSourceContext sourceContext,
+                        const wchar_t *sourceUrl,
+                        bool isStrictMode,
+                        JsValueRef *result) {
+  if (isStrictMode) {
+    // do not append new line so the line numbers on error stack are correct
+    std::wstring useStrictTag(L"'use strict'; ");
+    return JsParseScript(useStrictTag.append(script).c_str(), sourceContext,
+                  sourceUrl, result);
+  } else {
+    return JsParseScript(script, sourceContext, sourceUrl, result);
+  }
 }
-
 
 void Unimplemented(const char * message) {
   fprintf(stderr, "FATAL ERROR: '%s' unimplemented", message);
@@ -891,7 +864,7 @@ void Fatal(const char * format, ...) {
   abort();
 }
 
-void SetOutOfMemoryErrorIfExist(_In_ JsErrorCode errorCode) {
+void SetOutOfMemoryErrorIfExist(JsErrorCode errorCode) {
   if (errorCode == JsErrorOutOfMemory) {
     const wchar_t txt[] = L"process out of memory";
     JsValueRef msg, err;

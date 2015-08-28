@@ -18,9 +18,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#include "v8.h"
-#include "jsrt.h"
-#include "jsrtUtils.h"
+#include "v8chakra.h"
 #include <math.h>
 
 namespace v8 {
@@ -36,10 +34,8 @@ static bool IsOfType(const Value* ref, JsValueType type) {
 }
 
 static bool IsOfType(const Value* ref, ContextShim::GlobalType index) {
-    bool result;
     return jsrt::InstanceOf(const_cast<Value*>(ref),
-                            ContextShim::GetCurrent()->GetGlobalType(index),
-                            &result) == JsNoError && result;
+                            ContextShim::GetCurrent()->GetGlobalType(index));
 }
 
 bool Value::IsUndefined() const {
@@ -52,7 +48,7 @@ bool Value::IsNull() const {
 
 bool Value::IsTrue() const {
   bool isTrue;
-  if (JsEquals(*True(), (JsValueRef)this, &isTrue) != JsNoError) {
+  if (JsEquals(jsrt::GetTrue(), (JsValueRef)this, &isTrue) != JsNoError) {
     return false;
   }
 
@@ -61,7 +57,7 @@ bool Value::IsTrue() const {
 
 bool Value::IsFalse() const {
   bool isFalse;
-  if (JsEquals(*False(), (JsValueRef)this, &isFalse) != JsNoError) {
+  if (JsEquals(jsrt::GetFalse(), (JsValueRef)this, &isFalse) != JsNoError) {
     return false;
   }
 
@@ -93,8 +89,16 @@ bool Value::IsExternal() const {
   return External::IsExternal(this);
 }
 
+bool Value::IsArrayBuffer() const {
+  return IsOfType(this, JsValueType::JsArrayBuffer);
+}
+
 bool Value::IsTypedArray() const {
   return IsOfType(this, JsValueType::JsTypedArray);
+}
+
+bool Value::IsDataView() const {
+  return IsOfType(this, JsValueType::JsDataView);
 }
 
 bool Value::IsBoolean() const {
@@ -117,9 +121,7 @@ bool Value::IsInt32() const {
     return false;
   }
 
-  double second;
-
-  return (modf(value, &second) == 0.0);
+  return trunc(value) == value;
 }
 
 bool Value::IsUint32() const {
@@ -129,15 +131,11 @@ bool Value::IsUint32() const {
 
   double value = NumberValue();
   // check that the value is smaller than 32 bit maximum
-  if (value > UINT_MAX) {
+  if (value < 0 || value > UINT_MAX) {
     return false;
   }
 
-
-  double second;
-  // CHAKRA-TODO: nadavbar: replace this with trunc. Not used for since for some
-  // reason my math.h file does not contain it Probably a version problem
-  return (modf(value, &second) == 0.0 && value >= 0.0);
+  return trunc(value) == value;
 }
 
 bool Value::IsDate() const {
@@ -176,7 +174,7 @@ Local<Boolean> Value::ToBoolean() const {
     return Local<Boolean>();
   }
 
-  return Local<Boolean>::New(static_cast<Boolean*>(value));
+  return Local<Boolean>::New(value);
 }
 
 Local<Number> Value::ToNumber() const {
@@ -185,7 +183,7 @@ Local<Number> Value::ToNumber() const {
     return Local<Number>();
   }
 
-  return Local<Number>::New(static_cast<Number*>(value));
+  return Local<Number>::New(value);
 }
 
 Local<String> Value::ToString() const {
@@ -194,7 +192,11 @@ Local<String> Value::ToString() const {
     return Local<String>();
   }
 
-  return Local<String>::New(static_cast<String*>(value));
+  return Local<String>::New(value);
+}
+
+Local<String> Value::ToDetailString() const {
+  return ToString();
 }
 
 Local<Object> Value::ToObject() const {
@@ -203,7 +205,7 @@ Local<Object> Value::ToObject() const {
     return Local<Object>();
   }
 
-  return Local<Object>::New(static_cast<Object*>(value));
+  return Local<Object>::New(value);
 }
 
 Local<Integer> Value::ToInteger() const {
@@ -215,7 +217,7 @@ Local<Integer> Value::ToInteger() const {
     return Local<Integer>();
   }
 
-  return Local<Integer>::New(static_cast<Integer*>(integerRef));
+  return Local<Integer>::New(integerRef);
 }
 
 
@@ -229,6 +231,23 @@ Local<Int32> Value::ToInt32() const {
   Local<Integer> jsValue =
     Integer::New(Isolate::GetCurrent(), this->Int32Value());
   return Local<Int32>(static_cast<Int32*>(*jsValue));
+}
+
+Local<Uint32> Value::ToArrayIndex() const {
+  if (IsNumber()) {
+    return ToUint32();
+  }
+
+  Local<String> maybeString = ToString();
+  bool isUint32;
+  uint32_t uint32Value;
+  if (maybeString.IsEmpty() ||
+      jsrt::TryParseUInt32(*maybeString,
+                           &isUint32, &uint32Value) != JsNoError) {
+    return Local<Uint32>();
+  }
+
+  return static_cast<Uint32*>(*Integer::NewFromUnsigned(nullptr, uint32Value));
 }
 
 bool Value::BooleanValue() const {
