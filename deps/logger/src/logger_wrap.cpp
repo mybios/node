@@ -49,43 +49,34 @@ namespace logger {
     }
 
     if (args.Length() < 2 || ! args[0]->IsNumber()) {
-      isolate->ThrowException(Exception::Error(String::New(L"Invalid arguments, expected: [log level : number], [message : string]")));
+      isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "Invalid arguments, expected: [log level : number], [message : string]")));
       return;
     }
 
     // get log level
     ILogger::LogLevel level = static_cast<ILogger::LogLevel>(args[0]->Int32Value());
 
-    // convert to string if needed
-    Handle<String> msg;
-    if (args[1]->IsString()) {
-      msg = args[1];
-    } else {
-      msg = args[1]->ToString(); 
-    }
-
-    String::Utf8Value msgPtr(msg);
+	String::Utf8Value msgPtr(args[1]);
     s_logger->Log(level, *msgPtr);
   }
   
-  void Initialize(Handle<Object> target) { 
+  void Initialize(Handle<Object> target) {
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
 
     Handle<Object> loggerObject = Object::New();
-    
-    loggerObject->Set(String::NewSymbol("log"), FunctionTemplate::New(isolate, Log)->GetFunction());
+	loggerObject->Set(String::NewFromUtf8(isolate, "log"), FunctionTemplate::New(isolate, Log)->GetFunction());
 
     // init log level enum: Verbose, Info, Warn, Error
     Handle<Object> logLevelsObj = Object::New();
-    logLevelsObj->Set(String::NewSymbol("verbose"), Integer::New(isolate, static_cast<int>(ILogger::LogLevel::Verbose)));
-    logLevelsObj->Set(String::NewSymbol("info"), Integer::New(isolate, static_cast<int>(ILogger::LogLevel::Info)));
-    logLevelsObj->Set(String::NewSymbol("warn"), Integer::New(isolate, static_cast<int>(ILogger::LogLevel::Warn)));
-    logLevelsObj->Set(String::NewSymbol("error"), Integer::New(isolate, static_cast<int>(ILogger::LogLevel::Error)));
+	logLevelsObj->Set(String::NewFromUtf8(isolate, "verbose"), Integer::New(isolate, static_cast<int>(ILogger::LogLevel::Verbose)));
+	logLevelsObj->Set(String::NewFromUtf8(isolate, "info"), Integer::New(isolate, static_cast<int>(ILogger::LogLevel::Info)));
+	logLevelsObj->Set(String::NewFromUtf8(isolate, "warn"), Integer::New(isolate, static_cast<int>(ILogger::LogLevel::Warn)));
+	logLevelsObj->Set(String::NewFromUtf8(isolate, "error"), Integer::New(isolate, static_cast<int>(ILogger::LogLevel::Error)));
 
-    loggerObject->Set(String::NewSymbol("logLevels"), logLevelsObj);
+    loggerObject->Set(String::NewFromUtf8(isolate, "logLevels"), logLevelsObj);
 
-    target->Set(String::NewSymbol("logger"), loggerObject);
+	target->Set(String::NewFromUtf8(isolate, "logger"), loggerObject);
   }
 
 }  // namespace logger

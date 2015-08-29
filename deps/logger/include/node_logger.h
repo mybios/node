@@ -32,10 +32,10 @@
 namespace node {
 namespace logger {
 
-    EXPORT void NODE_API LogVerbose(const char* msg);
-    EXPORT void NODE_API LogInfo(const char* msg);
-    EXPORT void NODE_API LogWarn(const char* msg);
-    EXPORT void NODE_API LogError(const char* msg);
+    V8_EXPORT void NODE_API LogVerbose(const char* msg);
+	V8_EXPORT void NODE_API LogInfo(const char* msg);
+	V8_EXPORT void NODE_API LogWarn(const char* msg);
+	V8_EXPORT void NODE_API LogError(const char* msg);
 
 }  // namespace logger
 }  // namespace node
