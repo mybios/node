@@ -39,6 +39,12 @@ To build node.exe:
 vcbuild chakra nosign [x86|x64|arm]
 ```
 
+To build node.dll for the [Universal Windows Platform wrapper](https://github.com/ms-iot/node-uwp-wrapper):
+
+```sh
+vcbuild chakra nosign uwp-dll [x86|x64|arm]
+```
+
 ### Original README
 
 Read original node.js README [here](https://github.com/joyent/node).
