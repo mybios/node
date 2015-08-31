@@ -39,7 +39,7 @@ To build node.exe:
 vcbuild chakra nosign [x86|x64|arm]
 ```
 
-To build node.dll for the [Universal Windows Platform wrapper](https://github.com/ms-iot/node-uwp-wrapper):
+To build node.dll for the [Universal Windows Platform wrapper](https://github.com/ms-iot/node-uwp-wrapper) (Prerequisite: [Windows 10 SDK installed](https://dev.windows.com/en-us/downloads/windows-10-sdk)):
 
 ```sh
 vcbuild chakra nosign uwp-dll [x86|x64|arm]
