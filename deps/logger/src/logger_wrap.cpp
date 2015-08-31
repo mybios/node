@@ -56,7 +56,7 @@ namespace logger {
     // get log level
     ILogger::LogLevel level = static_cast<ILogger::LogLevel>(args[0]->Int32Value());
 
-	String::Utf8Value msgPtr(args[1]);
+    String::Utf8Value msgPtr(args[1]);
     s_logger->Log(level, *msgPtr);
   }
   
@@ -65,18 +65,18 @@ namespace logger {
     HandleScope scope(isolate);
 
     Handle<Object> loggerObject = Object::New();
-	loggerObject->Set(String::NewFromUtf8(isolate, "log"), FunctionTemplate::New(isolate, Log)->GetFunction());
+    loggerObject->Set(String::NewFromUtf8(isolate, "log"), FunctionTemplate::New(isolate, Log)->GetFunction());
 
     // init log level enum: Verbose, Info, Warn, Error
     Handle<Object> logLevelsObj = Object::New();
-	logLevelsObj->Set(String::NewFromUtf8(isolate, "verbose"), Integer::New(isolate, static_cast<int>(ILogger::LogLevel::Verbose)));
-	logLevelsObj->Set(String::NewFromUtf8(isolate, "info"), Integer::New(isolate, static_cast<int>(ILogger::LogLevel::Info)));
-	logLevelsObj->Set(String::NewFromUtf8(isolate, "warn"), Integer::New(isolate, static_cast<int>(ILogger::LogLevel::Warn)));
-	logLevelsObj->Set(String::NewFromUtf8(isolate, "error"), Integer::New(isolate, static_cast<int>(ILogger::LogLevel::Error)));
+    logLevelsObj->Set(String::NewFromUtf8(isolate, "verbose"), Integer::New(isolate, static_cast<int>(ILogger::LogLevel::Verbose)));
+    logLevelsObj->Set(String::NewFromUtf8(isolate, "info"), Integer::New(isolate, static_cast<int>(ILogger::LogLevel::Info)));
+    logLevelsObj->Set(String::NewFromUtf8(isolate, "warn"), Integer::New(isolate, static_cast<int>(ILogger::LogLevel::Warn)));
+    logLevelsObj->Set(String::NewFromUtf8(isolate, "error"), Integer::New(isolate, static_cast<int>(ILogger::LogLevel::Error)));
 
     loggerObject->Set(String::NewFromUtf8(isolate, "logLevels"), logLevelsObj);
 
-	target->Set(String::NewFromUtf8(isolate, "logger"), loggerObject);
+    target->Set(String::NewFromUtf8(isolate, "logger"), loggerObject);
   }
 
 }  // namespace logger

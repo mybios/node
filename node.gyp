@@ -317,7 +317,7 @@
         [ 'node_uwp_dll=="true"', {
           'type': 'loadable_module',
           'defines': [ 'UWP_DLL=1' ],
-          'include_dirs': [ 'deps/logger/include'],
+          'include_dirs': [ 'deps/logger/include' ],
         }],
 
         [ 'node_shared_zlib=="false"', {
