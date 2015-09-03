@@ -21,7 +21,6 @@
 #include "jsrtutils.h"
 #include <functional>
 #include <algorithm>
-#include <thread>
 
 namespace jsrt {
 
@@ -875,14 +874,4 @@ void SetOutOfMemoryErrorIfExist(JsErrorCode errorCode) {
   }
 }
 
-void ExitCleanup(){
-  std::thread t([]() {
-      JsRuntimeHandle runtime;
-      JsContextRef context;
-      JsCreateRuntime(JsRuntimeAttributeNone, nullptr, &runtime);
-      JsCreateContext(runtime, &context);
-      JsDisposeRuntime(runtime);
-  });
-  t.join();
-}
 }  // namespace jsrt

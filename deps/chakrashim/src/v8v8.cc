@@ -111,7 +111,6 @@ void V8::SetFlagsFromCommandLine(int *argc, char **argv, bool remove_flags) {
 }
 
 bool V8::Initialize() {
-  atexit(jsrt::ExitCleanup);
   if (g_EnableDebug && JsStartDebugging() != JsNoError) {
     return false;
   }

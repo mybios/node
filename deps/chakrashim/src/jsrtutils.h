@@ -372,10 +372,6 @@ inline JsErrorCode ConstructObject(JsValueRef func,
   return CallFunction(JsConstructObject, func, arg1, arg2, result);
 }
 
-// Clean up internal Chakra state by cleanly disposing at least one
-// context
-void ExitCleanup();
-
 
 template <bool LIKELY,
           class JsConvertToValueFunc,
