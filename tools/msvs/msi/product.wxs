@@ -2,47 +2,32 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
      xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
 
-  <?define ProductName = "$(var.NodeName)" ?>
-  <?define ProductDescription = "$(var.NodeName)" ?>
-
+  <?define ProductName = "Node.js" ?>
+  <?define ProductDescription = "Node.js" ?>
   <?define ProductAuthor = "Joyent, Inc. and other Node contributors" ?>
 
-  <?define RegistryKeyPath = "SOFTWARE\$(var.ProductName)" ?>
+  <?define RegistryKeyPath = "SOFTWARE\Node.js" ?>
 
   <?define RepoDir="$(var.ProjectDir)..\..\..\" ?>
   <?define SourceDir="$(var.RepoDir)\$(var.Configuration)\" ?>
 
-  <?if $(var.NodeUseSdk) = "" ?>
-  <?define NodeShortName = "nodejs" ?>
-  <?define NodeExeSource = "$(var.SourceDir)\node.exe" ?>
-  <?else?>
-  <?define NodeShortName = "$(var.NodeName)" ?>
-  <?define NodeExeSource = "$(var.SourceDir)\$(var.TargetArch)\node.exe" ?>
-  <?endif?>
-
-  <?if $(var.NodeEngine) = "v8" ?>
-  <?define UpgradeCode = "1d60944c-b9ce-4a71-a7c0-0384eb884baa" ?>
-  <?elseif $(var.NodeEngine) = "chakra" ?>
-  <?define UpgradeCode = "68be990c-51ab-4822-b6d1-8a95f1e62c1b" ?>
-  <?endif?>
-
   <Product Id="*"
            Name="$(var.ProductName)"
            Language="1033"
-           Version="$(var.ProductFullVersion)"
+           Version="$(var.ProductVersion)"
            Manufacturer="$(var.ProductAuthor)"
-           UpgradeCode="$(var.UpgradeCode)">
+           UpgradeCode="1d60944c-b9ce-4a71-a7c0-0384eb884baa">
 
     <Package InstallerVersion="200" Compressed="yes"/>
 
     <Media Id="1" Cabinet="media1.cab" EmbedCab="yes"/>
 
     <MajorUpgrade AllowSameVersionUpgrades="yes"
-                  DowngradeErrorMessage="A later version of $(var.ProductName) is already installed. Setup will now exit."/>
+                  DowngradeErrorMessage="A later version of node.js is already installed. Setup will now exit."/>
 
     <Icon Id="NodeIcon" SourceFile="$(var.RepoDir)\src\res\node.ico"/>
     <Property Id="ARPPRODUCTICON" Value="NodeIcon"/>
-    <Property Id="ApplicationFolderName" Value="$(var.NodeShortName)"/>
+    <Property Id="ApplicationFolderName" Value="nodejs"/>
     <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR"/>
 
     <Property Id="INSTALLDIR">
@@ -63,15 +48,6 @@
       <ComponentRef Id="NodeStartMenuAndRegistryEntries"/>
       <ComponentRef Id="AppData" />
       <ComponentGroupRef Id="Product.Generated"/>
-
-      <?if $(var.NodeUseSdk) != "" ?>
-      <Feature Id="NodeNativeAddonSDK"
-               Level="1"
-               Title="Node.js native addon module SDK"
-               Description="Installs headers and libs for building Node.js native addon modules.">
-        <ComponentGroupRef Id="NodeSdkFiles"/>
-      </Feature>
-      <?endif?>
 
       <Feature Id="NodePerfCtrSupport"
                Level="1"
@@ -131,14 +107,14 @@
       </Directory>
 
       <Directory Id="$(var.ProgramFilesFolderId)">
-        <Directory Id="INSTALLDIR" Name="$(var.NodeShortName)">
+        <Directory Id="INSTALLDIR" Name="nodejs">
         </Directory>
       </Directory>
     </Directory>
 
     <DirectoryRef Id="INSTALLDIR">
       <Component Id="NodeExecutable">
-        <File Id="node.exe" KeyPath="yes" Source="$(var.NodeExeSource)"/>
+        <File Id="node.exe" KeyPath="yes" Source="$(var.SourceDir)\node.exe"/>
       </Component>
 
       <Component Id="NodeVarsScript">
@@ -176,17 +152,17 @@
                        Type="string"
                        Value="$(var.ProductVersion)"/>
         <Shortcut Id="NodeVarsScriptShortcut"
-                  Name="$(var.ProductName) command prompt"
+                  Name="Node.js command prompt"
                   Target="[%ComSpec]"
                   Arguments='/k "[INSTALLDIR]nodevars.bat"'
                   Show="normal"
                   WorkingDirectory="INSTALLDIR"/>
         <Shortcut Id="NodeExecutableShortcut"
-                  Name="$(var.ProductName)"
+                  Name="Node.js"
                   Target="[INSTALLDIR]node.exe"
                   WorkingDirectory="INSTALLDIR"/>
         <Shortcut Id="UninstallProduct"
-                  Name="Uninstall $(var.ProductName)"
+                  Name="Uninstall Node.js"
                   Target="[SystemFolder]msiexec.exe"
                   Arguments="/x [ProductCode]"/>
         <RemoveFolder Id="RemoveApplicationProgramsFolder"
@@ -330,7 +306,7 @@
       <Publish Dialog="CustomizeDlg" Control="Back" Event="NewDialog" Value="InstallDirDlg" Order="2">NOT Installed</Publish>
       <Publish Dialog="CustomizeDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
 
-      <Property Id="WIXUI_EXITDIALOGOPTIONALTEXT" Value="$(var.ProductName) has been successfully installed."/>
+      <Property Id="WIXUI_EXITDIALOGOPTIONALTEXT" Value="Node.js has been successfully installed."/>
     </UI>
 
     <UIRef Id="WixUI_Common"/>

@@ -104,15 +104,6 @@ if defined build_release (
   set i18n_arg=small-icu
 )
 
-if defined sdk (
-  if not defined msi (
-    set save_release=1
-  ) else (
-    set noprojgen=1
-    set nobuild=1
-  )
-)
-
 if "%config%"=="Debug" set debug_arg=--debug
 if "%target_arch%"=="x64" set msiplatform=x64
 if defined nosnapshot set nosnapshot_arg=--without-snapshot
@@ -128,7 +119,6 @@ if "%i18n_arg%"=="full-icu" set i18n_arg=--with-intl=full-icu
 if "%i18n_arg%"=="small-icu" set i18n_arg=--with-intl=small-icu
 if "%i18n_arg%"=="intl-none" set i18n_arg=--with-intl=none
 
-if defined NODE_VERSION_TAG set TAG=%NODE_VERSION_TAG%
 if defined NIGHTLY set TAG=nightly-%NIGHTLY%
 
 @rem Set environment for msbuild
@@ -205,9 +195,7 @@ if errorlevel 1 goto exit
 
 :sign
 @rem Skip signing if the `nosign` option was specified.
-if defined nosign goto save_release
-@rem Also skip signing if building msi with sdk
-if defined sdk if defined msi goto save_release
+if defined nosign goto licensertf
 
 set releasebinaryname=node.exe
 if "%target_type%"=="uwp-dll" set releasebinaryname=node.dll
@@ -234,24 +222,12 @@ if not defined NIGHTLY goto msibuild
 set NODE_VERSION=%NODE_VERSION%.%NIGHTLY%
 
 :msibuild
-if defined NODE_VERSION_TAG (
-  set NODE_FULL_VERSION=%NODE_VERSION%.%NODE_VERSION_TAG%
-) else (
-  set NODE_FULL_VERSION=%NODE_VERSION%
-)
-if not defined sdk (
-  set NODE_NAME=Node.js
-  set NODE_MSIOUTPUT=node-v%NODE_FULL_VERSION%-%msiplatform%
-) else (
-  set NODE_NAME="Node.js (%engine%)"
-  set NODE_MSIOUTPUT=node-%engine%-v%NODE_FULL_VERSION%-%msiplatform%
-)
-echo Building %NODE_MSIOUTPUT%
-msbuild "%~dp0tools\msvs\msi\nodemsi.sln" /m /t:Clean,Build /p:Configuration=%config% /p:Platform=%msiplatform% /p:TargetArch=%target_arch% /p:NodeMsiOutput="%NODE_MSIOUTPUT%" /p:NodeEngine=%engine% /p:NodeName=%NODE_NAME% /p:NodeUseSdk=%sdk% /p:NodeFullVersion=%NODE_FULL_VERSION% /p:NodeVersion=%NODE_VERSION% %noetw_msi_arg% %noperfctr_msi_arg% /clp:NoSummary;NoItemAndPropertyList;Verbosity=minimal /nologo
+echo Building node-%NODE_VERSION%
+msbuild "%~dp0tools\msvs\msi\nodemsi.sln" /m /t:Clean,Build /p:Configuration=%config% /p:Platform=%msiplatform% /p:NodeVersion=%NODE_VERSION% %noetw_msi_arg% %noperfctr_msi_arg% /clp:NoSummary;NoItemAndPropertyList;Verbosity=minimal /nologo
 if errorlevel 1 goto exit
 
 if defined nosign goto run
-signtool sign /a /d "Node.js" /t http://timestamp.globalsign.com/scripts/timestamp.dll "Release\%NODE_MSIOUTPUT%.msi"
+signtool sign /a /d "Node.js" /t http://timestamp.globalsign.com/scripts/timestamp.dll Release\node-v%NODE_VERSION%-%msiplatform%.msi
 if errorlevel 1 echo Failed to sign msi&goto exit
 
 :run
