@@ -45,8 +45,8 @@ struct ObjectData {
    private:
     void Reset();
 
-    void* value;
     bool isRefValue;
+    void* value;
   };
 
   JsValueRef objectInstance;

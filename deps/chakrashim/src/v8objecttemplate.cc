@@ -93,9 +93,9 @@ void ObjectData::FieldValue::SetRef(JsValueRef ref) {
     return;  // fail
   }
 
-  isRefValue = true;
   value = reinterpret_cast<void*>(
     reinterpret_cast<UINT_PTR>(ref));
+  isRefValue = true;
   CHAKRA_ASSERT(GetRef() == ref);
 }
 
@@ -111,8 +111,8 @@ bool ObjectData::FieldValue::IsRef() const {
 
 void ObjectData::FieldValue::SetPointer(void* ptr) {
   Reset();
-  isRefValue = false;
   value = ptr;
+  isRefValue = false;
   CHAKRA_ASSERT(GetPointer() == ptr);
 }
 
@@ -125,8 +125,8 @@ void ObjectData::FieldValue::Reset() {
   if (IsRef()) {
     JsRelease(GetRef(), nullptr);
   }
-  value = nullptr;
   isRefValue = false;
+  value = nullptr;
 }
 
 ObjectData::ObjectData(ObjectTemplate* objectTemplate,
