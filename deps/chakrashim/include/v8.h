@@ -1519,7 +1519,6 @@ class V8_EXPORT FunctionTemplate : public Template {
   void SetClassName(Handle<String> name);
   void SetHiddenPrototype(bool value);
   bool HasInstance(Handle<Value> object);
-  void Inherit(Handle<FunctionTemplate> parent);
 };
 
 class V8_EXPORT ObjectTemplate : public Template {
