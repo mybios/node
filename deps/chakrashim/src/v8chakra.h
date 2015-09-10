@@ -43,11 +43,10 @@ struct ObjectData {
     void* GetPointer() const;
 
    private:
-    static const UINT_PTR kValueRefTag = 1;
-    static const UINT_PTR kValueRefMask = ~kValueRefTag;
     void Reset();
 
     void* value;
+	bool _ref;
   };
 
   JsValueRef objectInstance;

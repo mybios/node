@@ -40,5 +40,11 @@ void Template::Set(
     properties->ForceSet(name, value.As<Value>(), attributes);
   }
 }
+void Template::Set(Isolate* isolate, const char* name, Handle<FunctionTemplate> value) {
+	Set(v8::String::NewFromUtf8(isolate, name), value->GetFunction());
+}
+void Template::Set(Isolate* isolate, const char* name, Handle<ObjectTemplate> value) {
+	Set(v8::String::NewFromUtf8(isolate, name), value->NewInstance());
+}
 
 }  // namespace v8

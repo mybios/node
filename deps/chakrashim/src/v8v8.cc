@@ -31,7 +31,7 @@ bool g_useStrict = false;
 
 const char *V8::GetVersion() {
   static char versionStr[32] = {};
-
+#ifndef WINRT
   if (versionStr[0] == '\0') {
     HMODULE hModule;
     if (GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
@@ -59,6 +59,7 @@ const char *V8::GetVersion() {
       }
     }
   }
+#endif
 
   return versionStr;
 }

@@ -56,12 +56,9 @@
 #include <memory>
 #include "v8config.h"
 
-#ifdef BUILDING_CHAKRASHIM
-#define V8_EXPORT __declspec(dllexport)
-#else
-#define V8_EXPORT __declspec(dllimport)
-#endif
+#define V8_EXPORT
 
+#define V8_WITH_CHAKRASHIM
 #define TYPE_CHECK(T, S)                                       \
   while (false) {                                              \
     *(static_cast<T* volatile*>(0)) = static_cast<S*>(0);      \
@@ -450,7 +447,7 @@ class PersistentBase {
   V8_INLINE bool IsWeak() const;
   V8_INLINE void SetWrapperClassId(uint16_t class_id);
 
- private:
+ protected:
   template<class F> friend class Handle;
   template<class F> friend class Local;
   template<class F1, class F2> friend class Persistent;
@@ -1497,10 +1494,13 @@ class V8_EXPORT Template : public Data {
   void Set(Handle<String> name,
            Handle<Data> value,
            PropertyAttribute attributes = None);
+
   void Set(Isolate* isolate, const char* name, Handle<Data> value) {
     Set(v8::String::NewFromUtf8(isolate, name), value);
   }
- private:
+  void Set(Isolate* isolate, const char* name, Handle<FunctionTemplate> value);
+  void Set(Isolate* isolate, const char* name, Handle<ObjectTemplate> value);
+private:
   Template();
 };
 
@@ -1519,6 +1519,7 @@ class V8_EXPORT FunctionTemplate : public Template {
   void SetClassName(Handle<String> name);
   void SetHiddenPrototype(bool value);
   bool HasInstance(Handle<Value> object);
+  void Inherit(Handle<FunctionTemplate> parent);
 };
 
 class V8_EXPORT ObjectTemplate : public Template {
@@ -1667,9 +1668,38 @@ class V8_EXPORT Isolate {
  public:
   class V8_EXPORT Scope {
    public:
-    explicit Scope(Isolate* isolate) : isolate_(isolate) { isolate->Enter(); }
-    ~Scope() { isolate_->Exit(); }
+    explicit Scope(Isolate* isolate)
+		: isolate_(isolate)
+		, restoreIsolate_(nullptr)
+		, enter_(false)
+	{
+		restoreIsolate_ = Isolate::GetCurrent();
+		if (restoreIsolate_)
+		{
+			restoreIsolate_->Exit();
+		}
+
+		if (Isolate::GetCurrent() != isolate)
+		{
+			enter_ = true;
+			isolate->Enter();
+		}
+	}
+    ~Scope()
+	{
+		if (enter_)
+		{
+			isolate_->Exit();
+		}
+
+		if (restoreIsolate_)
+		{
+			restoreIsolate_->Enter();
+		}
+	}
    private:
+	   bool enter_;
+	   Isolate *restoreIsolate_;
     Isolate* const isolate_;
     Scope(const Scope&);
     Scope& operator=(const Scope&);
@@ -1756,7 +1786,8 @@ class V8_EXPORT V8 {
   static bool AddMessageListener(
     MessageCallback that, Handle<Value> data = Handle<Value>());
   static void RemoveMessageListeners(MessageCallback that);
-  static void InitializePlatform(Platform* platform) {}
+  static void InitializePlatform(Platform *platform) {};
+  static void ShutdownPlatform() {};
 };
 
 class V8_EXPORT TryCatch {
