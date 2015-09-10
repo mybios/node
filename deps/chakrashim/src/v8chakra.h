@@ -32,7 +32,7 @@ struct ObjectData {
  public:
   struct FieldValue {
    public:
-    FieldValue() : value(nullptr) {}
+    FieldValue() : value(nullptr), isRefValue(false){}
     ~FieldValue() { Reset(); }
 
     void SetRef(JsValueRef ref);
@@ -43,11 +43,10 @@ struct ObjectData {
     void* GetPointer() const;
 
    private:
-    static const UINT_PTR kValueRefTag = 1;
-    static const UINT_PTR kValueRefMask = ~kValueRefTag;
     void Reset();
 
     void* value;
+	bool isRefValue;
   };
 
   JsValueRef objectInstance;
