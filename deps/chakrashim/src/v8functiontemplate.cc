@@ -256,7 +256,9 @@ Local<Function> FunctionTemplate::GetFunction() {
         Local<Function> parent = functionTemplateData->parent->GetFunction();
 
         JsValueRef parentPrototype;
-        if (JsGetProperty(*parent, iso->GetCachedPropertyIdRef(jsrt::CachedPropertyIdRef::prototype), &parentPrototype) != JsNoError)
+        if (JsGetProperty(*parent, iso->GetCachedPropertyIdRef(
+            jsrt::CachedPropertyIdRef::prototype), &parentPrototype
+            ) != JsNoError)
             return Local<Function>();
         if (JsSetPrototype(*prototype, parentPrototype) != JsNoError)
             return Local<Function>();
@@ -340,6 +342,5 @@ void FunctionTemplate::Inherit(Handle<FunctionTemplate> parent)
     FunctionTemplateData *functionTemplateData =
         reinterpret_cast<FunctionTemplateData*>(externalData);
     functionTemplateData->parent = parent;
-
 }
 }  // namespace v8
